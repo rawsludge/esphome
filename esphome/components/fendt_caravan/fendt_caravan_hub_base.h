@@ -1,14 +1,13 @@
 #pragma once
 
 #ifdef USE_ESP32
-#include "esphome/core/component.h"
-#include "esphome/components/switch/switch.h"
 #include "esphome/core/string_ref.h"
+#include "esphome/core/component.h"
 #include "variable.h"
 
 namespace esphome::fendt_caravan {
 
-class CaravanDeviceComponent : public Component {
+class FendtCaravanHubBase : public PollingComponent {
  public:
   virtual bool decode(const std::string &name, const std::string &value) {
     auto *variable = this->get_variable(name);
@@ -26,6 +25,7 @@ class CaravanDeviceComponent : public Component {
   void setup() override{};
   void loop() override{};
   void dump_config() override = 0;
+  void update() override{};
 
   IVariable *get_variable(const std::string &name) {
     for (auto *variable : this->variables_) {

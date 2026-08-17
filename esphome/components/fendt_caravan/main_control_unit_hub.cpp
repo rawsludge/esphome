@@ -1,10 +1,10 @@
-#include "control_unit_device_sensor.h"
+#include "main_control_unit_hub.h"
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
 static const char *const TAG = "FC.CU";
 
-void ControlUnitDeviceSensor::setup() {
+void MainControlUnitHub::setup() {
   auto *network = new Variable<std::string>("LINE_EN", [](const std::string &value) {
     const char *tmp[] = {"Connected", "Disconnected"};
     return DeviceDecoders::decode_bool_str(value, tmp);
@@ -89,18 +89,19 @@ void ControlUnitDeviceSensor::setup() {
   this->add_variable(radio_config);
 }
 
-void ControlUnitDeviceSensor::dump_config() {
+void MainControlUnitHub::dump_config() {
   ESP_LOGCONFIG(TAG, "Fendt Control Unit");
-  LOG_SWITCH(TAG, "  Main Switch", this->main_switch_switch_);
-  LOG_SWITCH(TAG, "  All Lights Status", this->all_lights_switch_);
+  // LOG_SWITCH(TAG, "  Main Switch", this->main_switch_switch_);
+  // LOG_SWITCH(TAG, "  All Lights Status", this->all_lights_switch_);
   LOG_SENSOR(TAG, "  Temp In", this->temp_in_sensor_);
   LOG_SENSOR(TAG, "  Temp Out", this->temp_out_sensor_);
-  LOG_TEXT_SENSOR(TAG, "  Power Status", this->power_status_text_sensor_);
-  LOG_TEXT_SENSOR(TAG, "  Software Version", this->software_version_text_sensor_);
-  LOG_SWITCH(TAG, "  Floor Heater", this->floor_heater_switch_);
+  // LOG_TEXT_SENSOR(TAG, "  Power Status", this->power_status_text_sensor_);
+  // LOG_TEXT_SENSOR(TAG, "  Software Version", this->software_version_text_sensor_);
+  // LOG_SWITCH(TAG, "  Floor Heater", this->floor_heater_switch_);
 }
 
-void ControlUnitDeviceSensor::on_data_decoded(IVariable *variable) {
+void MainControlUnitHub::on_data_decoded(IVariable *variable) {
+  /*
   if (this->main_switch_switch_ && variable->get_name() == "HS_KEY_STATE") {
     auto *hs_key_state = static_cast<Variable<int> *>(variable);
     if (hs_key_state->is_active()) {
@@ -109,10 +110,10 @@ void ControlUnitDeviceSensor::on_data_decoded(IVariable *variable) {
       if (this->all_lights_switch_)
         this->all_lights_switch_->publish_state(hs_key_state->get_value() == 2);
     }
-  }
+  }*/
 }
 
-void ControlUnitDeviceSensor::on_state_change_command(const std::string &tag, const std::string &command) {
+void MainControlUnitHub::on_state_change_command(const std::string &tag, const std::string &command) {
   std::string cmd = command;
   if (tag == "MAIN_SWITCH") {
     auto *hs_key_long = GET_VARIABLE(bool, "HS_KEY_LONG");
