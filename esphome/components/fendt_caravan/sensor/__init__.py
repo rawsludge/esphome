@@ -11,6 +11,8 @@ from esphome.const import (
 from .. import CONF_PARENT_ID, FendtCaravanHubBase, fendt_caravan_ns
 
 FendtSensor = fendt_caravan_ns.class_("FendtSensor", sensor.Sensor)
+CONF_TEMP_IN = "temp_in"
+CONF_TEMP_OUT = "temp_out"
 
 
 def _sensor_schema(
@@ -34,13 +36,13 @@ def _sensor_schema(
 
 CONFIG_SCHEMA = cv.typed_schema(
     {
-        "temp_in": _sensor_schema(
+        CONF_TEMP_IN: _sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
             device_class=DEVICE_CLASS_TEMPERATURE,
         ),
-        "temp_out": _sensor_schema(
+        CONF_TEMP_OUT: _sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,

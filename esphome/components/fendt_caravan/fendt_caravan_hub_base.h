@@ -13,15 +13,10 @@ class FendtCaravanHubBase : public PollingComponent {
     auto *variable = this->get_variable(name);
     if (variable) {
       variable->decode(value);
-      on_data_decoded(variable);
     }
     return variable != nullptr;
   }
-  virtual void on_state_change_command(const std::string &tag, const std::string &command) = 0;
   void add_variable(IVariable *variable) { this->variables_.push_back(variable); }
-  void set_command_send_callback(std::function<void(const std::string &)> &&callback) {
-    this->command_callback_.add(std::move(callback));
-  }
   void setup() override{};
   void loop() override{};
   void dump_config() override = 0;
@@ -36,9 +31,7 @@ class FendtCaravanHubBase : public PollingComponent {
   }
 
  protected:
-  virtual void on_data_decoded(IVariable *variable){};
   std::vector<IVariable *> variables_{};
-  CallbackManager<void(const std::string &)> command_callback_{};
   std::vector<IVariable *> get_variables_() { return this->variables_; }
 
  private:
