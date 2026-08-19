@@ -85,6 +85,9 @@ void MainControlUnitHub::setup() {
   auto *radio_config = new Variable<bool>("RADIO_CONFIG", DeviceDecoders::decode_bool);
   this->add_variable(radio_config);
 
+  auto *water_level = new Variable<int>("WATER_LEVEL", DeviceDecoders::decode_int);
+  this->add_variable(water_level);
+
   if (this->main_switch_switch_) {
     this->main_switch_switch_->add_on_state_callback([this](bool state) {
       std::string cmd = "";
@@ -156,13 +159,18 @@ void MainControlUnitHub::dump_config() {
 void MainControlUnitHub::update() {
   if (this->temp_in_sensor_) {
     auto *temp_in = GET_VARIABLE(float, "TEMP_IN");
-    if (temp_in)
+    if (temp_in && temp_in->is_active())
       this->temp_in_sensor_->publish_state(temp_in->get_value());
   }
   if (this->temp_out_sensor_) {
     auto *temp_out = GET_VARIABLE(float, "TEMP_OUT");
-    if (temp_out)
+    if (temp_out && temp_out->is_active())
       this->temp_out_sensor_->publish_state(temp_out->get_value());
+  }
+  if (this->water_level_sensor_) {
+    auto water_level = GET_VARIABLE(int, "WATER_LEVEL");
+    if (water_level && water_level->is_active())
+      this->water_level_sensor_->publish_state(float(water_level->get_value()) / 4.0f);
   }
 }
 
@@ -188,6 +196,7 @@ bool MainControlUnitHub::decode(const std::string &name, const std::string &valu
     if (power_status && power_status->is_active())
       this->power_status_binary_sensor_->publish_state(power_status->get_value());
   }
+
   if (name == "SOFTWARE_VERSION" && this->software_version_text_sensor_) {
     auto *software_version = GET_VARIABLE(std::string, "SOFTWARE_VERSION");
     if (software_version && software_version->is_active())

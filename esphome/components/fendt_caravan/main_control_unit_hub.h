@@ -30,6 +30,7 @@ class MainControlUnitHub : public FendtCaravanHubBase, public Parented<FendtCara
   SUB_TEXT_SENSOR(software_version);
   SUB_SWITCH(all_lights);
   SUB_SWITCH(floor_heater);
+  SUB_SENSOR(water_level);
 };
 }  // namespace esphome::fendt_caravan
 #endif

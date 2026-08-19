@@ -4,8 +4,10 @@ import esphome.config_validation as cv
 from esphome.const import (
     CONF_TYPE,
     DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_WATER,
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
+    UNIT_PERCENT,
 )
 
 from .. import CONF_PARENT_ID, FendtCaravanHubBase, fendt_caravan_ns
@@ -13,6 +15,7 @@ from .. import CONF_PARENT_ID, FendtCaravanHubBase, fendt_caravan_ns
 FendtSensor = fendt_caravan_ns.class_("FendtSensor", sensor.Sensor)
 CONF_TEMP_IN = "temp_in"
 CONF_TEMP_OUT = "temp_out"
+CONF_WATER_LEVEL = "water_level"
 
 
 def _sensor_schema(
@@ -47,6 +50,12 @@ CONFIG_SCHEMA = cv.typed_schema(
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
             device_class=DEVICE_CLASS_TEMPERATURE,
+        ),
+        CONF_WATER_LEVEL: _sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_WATER,
         ),
     }
 )
