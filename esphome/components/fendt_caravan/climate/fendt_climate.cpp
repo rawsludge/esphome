@@ -20,12 +20,6 @@ void FendtClimate::setup() {
       this->publish_state();
     });
   }
-  if (!this->key_name_.empty()) {
-    auto *variable = static_cast<Variable<float> *>(this->get_parent()->get_variable(this->key_name_));
-    if (variable != nullptr) {
-      this->set_variable(variable);
-    }
-  }
   this->sensor_->add_on_state_callback([this](float state) {
     this->current_temperature = state;
     // current temperature changed, publish state
@@ -79,10 +73,6 @@ void FendtClimate::control(const climate::ClimateCall &call) {
   }
   if (call.get_target_temperature().has_value()) {
     float target_temp = call.get_target_temperature().value();
-    if (this->variable_) {
-      this->variable_->set_value(target_temp);
-      this->parent_->on_state_change_command(this->key_name_, this->variable_->get_command());
-    }
     ESP_LOGV(TAG, "Control call. Target temperature: %.2f", target_temp);
   }
   if (publish_state)
@@ -103,10 +93,5 @@ climate::ClimateTraits FendtClimate::traits() {
   return traits;
 }
 
-void FendtClimate::on_decoded(const float &target) {
-  ESP_LOGV(TAG, "On Decoded called");
-  this->target_temperature = target;
-  this->publish_state();
-}
 }  // namespace esphome::fendt_caravan
 #endif

@@ -19,10 +19,12 @@ FendtCaravanHubBase = fendt_caravan_ns.class_(
     "FendtCaravanHubBase", cg.PollingComponent
 )
 MainControlUnitHub = fendt_caravan_ns.class_("MainControlUnitHub", FendtCaravanHubBase)
+AldeDeviceHub = fendt_caravan_ns.class_("AldeDeviceHub", FendtCaravanHubBase)
 
 CONF_PARENT_ID = "parent_id"
 CONF_KEY_NAME = "key_name"
 CONF_MAIN_CONTROL_UNIT = "main_control_unit"
+CONF_ALDE_HEATER = "alde_heater"
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
@@ -32,6 +34,11 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_MAIN_CONTROL_UNIT): cv.Schema(
                 {
                     cv.GenerateID(): cv.declare_id(MainControlUnitHub),
+                }
+            ).extend(cv.polling_component_schema("60s")),
+            cv.Optional(CONF_ALDE_HEATER): cv.Schema(
+                {
+                    cv.GenerateID(): cv.declare_id(AldeDeviceHub),
                 }
             ).extend(cv.polling_component_schema("60s")),
         }
@@ -46,3 +53,6 @@ async def to_code(config):
     if CONF_MAIN_CONTROL_UNIT in config:
         hub = cg.new_Pvariable(config[CONF_MAIN_CONTROL_UNIT][CONF_ID])
         await cg.register_component(hub, config[CONF_MAIN_CONTROL_UNIT])
+    if CONF_ALDE_HEATER in config:
+        hub = cg.new_Pvariable(config[CONF_ALDE_HEATER][CONF_ID])
+        await cg.register_component(hub, config[CONF_ALDE_HEATER])

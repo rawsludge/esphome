@@ -26,17 +26,17 @@ using namespace std;
  public: \
   void set_##name##_climate(climate::Climate *c) { this->name##_climate_ = c; }
 
-class AldeDeviceSensor : public CaravanDeviceComponent, public sensor::Sensor, public Parented<FendtCaravan> {
+class AldeDeviceHub : public FendtCaravanHubBase, public sensor::Sensor, public Parented<FendtCaravan> {
  public:
   void setup() override;
   void dump_config() override;
   void update() override;
 
-  SUB_BINARY_SENSOr(alde_status);
+  SUB_BINARY_SENSOR(alde_status);
   SUB_CLIMATE(alde_climate);
   SUB_SWITCH(alde_heater);
-  SUB_SWITCH(alde_heater_water);
-  SUB_SWITCH(alde_heater_water_temperature);
+  SUB_SWITCH(alde_water_heater);
+  SUB_SWITCH(alde_water_heater_boost);
   SUB_SELECT(alde_heater_electricity);
   SUB_SWITCH(alde_heater_gas);
 };

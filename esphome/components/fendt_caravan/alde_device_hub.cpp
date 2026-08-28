@@ -4,7 +4,7 @@
 namespace esphome::fendt_caravan {
 static const char *const TAG = "FC.alde";
 
-void AldeDeviceSensor::setup() {
+void AldeDeviceHub::setup() {
   auto *alde_available = new Variable<std::string>("HEATER_AVAILABLE", [](const std::string &value) {
     const char *tmp[] = {"Available", "Not available"};
     return DeviceDecoders::decode_bool_str(value, tmp);
@@ -33,23 +33,18 @@ void AldeDeviceSensor::setup() {
   this->add_variable(heater_gas);
 }
 
-void AldeDeviceSensor::dump_config() {
+void AldeDeviceHub::dump_config() {
   ESP_LOGCONFIG(TAG, " -Fendt Alde Device-");
-  LOG_TEXT_SENSOR(TAG, "  Alde Sensor", this->alde_available_text_sensor_);
-  LOG_SWITCH(TAG, "  Alde Status Switch", this->alde_heater_switch_);
-  // LOG_NUMBER(TAG, "  Heater Temperature", this->alde_heater_temperature_number_);
-  LOG_SWITCH(TAG, "  Heater Water", this->alde_heater_water_switch_);
-  LOG_SWITCH(TAG, "  Water Temperature", this->alde_heater_water_temperature_switch_);
+  LOG_BINARY_SENSOR(TAG, "  Alde Status", this->alde_status_binary_sensor_);
+  LOG_CLIMATE(TAG, "  Alde climate", this->alde_climate_climate_);
+  LOG_SWITCH(TAG, "  Alde heater switch", this->alde_heater_switch_);
+  LOG_SWITCH(TAG, "  Alde heater water", this->alde_water_heater_switch_);
+  LOG_SWITCH(TAG, "  Alde heater Water boost", this->alde_water_heater_boost_switch_);
   LOG_SELECT(TAG, "  Heater Electric", this->alde_heater_electricity_select_);
   LOG_SWITCH(TAG, "  Heater Gas", this->alde_heater_gas_switch_);
 }
 
-void AldeDeviceSensor::on_state_change_command(const std::string &tag, const std::string &command) {
-  if (!command.empty()) {
-    ESP_LOGD(TAG, "Switch state changed command:%s", command.c_str());
-    this->command_callback_.call(command);
-  }
-}
+void AldeDeviceHub::update() {}
 
 }  // namespace esphome::fendt_caravan
 #endif
