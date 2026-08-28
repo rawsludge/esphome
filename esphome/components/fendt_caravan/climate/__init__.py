@@ -18,7 +18,7 @@ CONF_HEATER_SWITCH = "heater_switch"
 
 CONFIG_SCHEMA = cv.typed_schema(
     {
-        "alde_climate": climate.climate_schema(FendtClimate).extend(
+        "alde": climate.climate_schema(FendtClimate).extend(
             {
                 cv.Required(CONF_PARENT_ID): cv.use_id(FendtCaravanHubBase),
                 cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),

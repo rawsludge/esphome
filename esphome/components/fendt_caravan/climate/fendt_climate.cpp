@@ -71,12 +71,9 @@ void FendtClimate::control(const climate::ClimateCall &call) {
       trig->trigger();
     }
   }
-  if (call.get_target_temperature().has_value()) {
-    float target_temp = call.get_target_temperature().value();
-    ESP_LOGV(TAG, "Control call. Target temperature: %.2f", target_temp);
-  }
   if (publish_state)
     this->publish_state();
+  this->control_callback_.call(const_cast<climate::ClimateCall &>(call));
 }
 
 climate::ClimateTraits FendtClimate::traits() {

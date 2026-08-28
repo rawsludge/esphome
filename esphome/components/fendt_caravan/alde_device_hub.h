@@ -31,9 +31,10 @@ class AldeDeviceHub : public FendtCaravanHubBase, public sensor::Sensor, public 
   void setup() override;
   void dump_config() override;
   void update() override;
+  void decode(IVariable *varible) override;
 
   SUB_BINARY_SENSOR(alde_status);
-  SUB_CLIMATE(alde_climate);
+  SUB_CLIMATE(alde);
   SUB_SWITCH(alde_heater);
   SUB_SWITCH(alde_water_heater);
   SUB_SWITCH(alde_water_heater_boost);

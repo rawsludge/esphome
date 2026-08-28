@@ -10,67 +10,72 @@ fendt_caravan:
   id: my_caravan
   ble_client_id: my_ble_client
   main_control_unit:
-    id: main_control_unit_hub
+    id: fendt_caravan_mcu
     update_interval: 60s
-  alde_heater:
-    id: alde_heater_hub
+  alde_unit:
+    id: fendt_caravan_alde
     update_interval: 60s
 
 sensor:
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: temp_in
     name: Temperature In
     id: temp_in
 
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: temp_out
     name: Temperature Out
     id: temp_out
 
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_mcu
+    type: water_level
+    name: Water Level
+
 switch:
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: main_switch
     name: Main Switch
     restore_mode: ALWAYS_OFF
 
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: all_lights
     name: All Lights Switch
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: floor_heater
     name: Floor Heater
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_heater
     name: Alde Heater Switch
     id: alde_heater_switch
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_heater_gas
     name: Alde Gas Switch
     id: alde_heater_gas
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_water_heater
     name: Water Heater
     id: alde_water_heater_switch
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_water_heater_boost
     name: Boost Water Temperature
     id: alde_water_heater_boost
@@ -78,26 +83,26 @@ switch:
 
 binary_sensor:
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: power_status
     name: Power Status
 
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_status
     name: Alde Status
     id: alde_status
 
 text_sensor:
   - platform: fendt_caravan
-    parent_id: main_control_unit_hub
+    parent_id: fendt_caravan_mcu
     type: software_version
     name: Software Version
 
 climate:
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
-    type: alde_climate
+    parent_id: fendt_caravan_alde
+    type: alde
     name: Alde Climate Control
     id: ald_climate_control
     sensor: temp_in
@@ -105,7 +110,7 @@ climate:
 
 select:
   - platform: fendt_caravan
-    parent_id: alde_heater_hub
+    parent_id: fendt_caravan_alde
     type: alde_heater_electricity
     name: Heater Electric Power
     id: heater_electric_power

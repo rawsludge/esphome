@@ -21,7 +21,9 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
                            esp_ble_gattc_cb_param_t *param) override;
 
   void set_address(uint64_t address) { address_ = address; };
-  void set_mcu_device_sensor(FendtCaravanHubBase *mcu_device_sensor) { this->mcu_device_ = mcu_device_sensor; };
+  void set_mcu_hub(FendtCaravanHubBase *mcu_hub) { this->mcu_hub_ = mcu_hub; };
+  void set_alde_unit_hub(FendtCaravanHubBase *alde_unit_hub) { this->alde_unit_hub_ = alde_unit_hub; };
+
   void dump_config() override;
   void send_command(const std::string &command);
 
@@ -38,7 +40,9 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
   std::vector<std::string> commands_{};
   uint32_t last_command_time_ = 0;
   std::string last_response_ = {};
-  FendtCaravanHubBase *mcu_device_{nullptr};
+
+  FendtCaravanHubBase *mcu_hub_{nullptr};
+  FendtCaravanHubBase *alde_unit_hub_{nullptr};
 };
 }  // namespace esphome::fendt_caravan
 #endif

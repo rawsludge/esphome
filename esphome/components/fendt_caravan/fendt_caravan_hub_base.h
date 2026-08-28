@@ -13,9 +13,12 @@ class FendtCaravanHubBase : public PollingComponent {
     auto *variable = this->get_variable(name);
     if (variable) {
       variable->decode(value);
+      this->decode(variable);
+      return true;
     }
-    return variable != nullptr;
+    return false;
   }
+  virtual void decode(IVariable *variable){};
   void add_variable(IVariable *variable) { this->variables_.push_back(variable); }
   void setup() override{};
   void loop() override{};
