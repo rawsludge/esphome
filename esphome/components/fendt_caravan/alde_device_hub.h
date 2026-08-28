@@ -1,19 +1,19 @@
 #pragma once
 
 #ifdef USE_ESP32
-#include "esphome/components/fendt_caravan/caravan_device_component.h"
-#include "esphome/components/fendt_caravan/fendt_caravan.h"
-#include "esphome/components/text_sensor/text_sensor.h"
-#include "esphome/components/fendt_caravan/variable.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/climate/climate.h"
 #include "esphome/components/select/select.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/string_ref.h"
+#include "fendt_caravan_hub_base.h"
 #include "esphome/core/component.h"
 #include "esphome/core/log.h"
 #include "device_decoders.h"
 #include "device_commands.h"
+#include "fendt_caravan.h"
+#include "variable.h"
 
 namespace esphome::fendt_caravan {
 
@@ -30,23 +30,15 @@ class AldeDeviceSensor : public CaravanDeviceComponent, public sensor::Sensor, p
  public:
   void setup() override;
   void dump_config() override;
+  void update() override;
 
-  SUB_TEXT_SENSOR(alde_available);
+  SUB_BINARY_SENSOr(alde_status);
   SUB_CLIMATE(alde_climate);
   SUB_SWITCH(alde_heater);
-  // FENDT_NUMBER(alde_heater_temperature);
   SUB_SWITCH(alde_heater_water);
   SUB_SWITCH(alde_heater_water_temperature);
   SUB_SELECT(alde_heater_electricity);
   SUB_SWITCH(alde_heater_gas);
-
-  void on_state_change_command(const std::string &tag, const std::string &command) override;
-
- protected:
- private:
-  // void on_switch_state_change(switch_::Switch *sw, bool state, const std::string &command) override;
-  //  void on_number_state_change_(FendtNumber *num, float state);
-  //  void on_select_state_change_(FendtSelect *sel, std::string state);
 };
 }  // namespace esphome::fendt_caravan
 #endif

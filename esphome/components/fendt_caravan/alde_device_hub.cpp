@@ -1,4 +1,4 @@
-#include "alde_device_sensor.h"
+#include "alde_device_hub.h"
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
