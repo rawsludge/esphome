@@ -1,0 +1,176 @@
+packages:
+  ble: !include ../../test_build_components/common/ble/esp32-idf.yaml
+
+ble_client:
+  - mac_address: DE:00:40:10:62:39
+    id: my_ble_client
+    auto_connect: true
+
+fendt_caravan:
+  id: my_caravan
+  ble_client_id: my_ble_client
+
+sensor:
+  - platform: fendt_caravan
+    parent_id: my_caravan
+    type: mcu_device
+    id: main_unit_device
+
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: temp_in
+    name: Temperature In
+    id: temp_in
+
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: temp_out
+    name: Temperature Out
+    id: temp_out
+
+  - platform: fendt_caravan
+    parent_id: my_caravan
+    type: alde_heater_device
+    name: Alde Heater
+    id: alde_heater_device
+
+  - platform: fendt_caravan
+    parent_id: my_caravan
+    type: lighting_device
+    name: Lighting Device
+    id: lighting_device
+
+switch:
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: main_switch
+    name: Main Switch
+    restore_mode: ALWAYS_OFF
+
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: all_lights
+    name: All Lights Switch
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: floor_heater
+    name: Floor Heater
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_heater_gas
+    name: Alde Gas Switch
+    id: alde_heater_gas
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_heater
+    name: Alde Heater Switch
+    id: alde_heater_switch
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_heater_water
+    name: Water Heater
+    id: alde_water_heater_switch
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_heater_water_temperature
+    name: Boost Water Temperature
+    id: alde_heater_water_temperature
+    restore_mode: RESTORE_DEFAULT_OFF
+
+text_sensor:
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: power_status
+    name: Power Status
+
+  - platform: fendt_caravan
+    parent_id: main_unit_device
+    type: software_version
+    name: Software Version
+
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_available
+    name: Alde Available
+    id: alde_status
+
+climate:
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_climate
+    name: Alde Climate Control
+    id: ald_climate_control
+    sensor: temp_in
+    heater_switch: alde_heater_switch
+
+select:
+  - platform: fendt_caravan
+    parent_id: alde_heater_device
+    type: alde_heater_electricity
+    name: Heater Electric Power
+    id: heater_electric_power
+
+light:
+  - platform: fendt_caravan
+    name: Living Room(Bottom)
+    parent_id: lighting_device
+    id: light_sw0
+    type: light_sw0
+
+  - platform: fendt_caravan
+    name: Awning Light
+    parent_id: lighting_device
+    id: light_sw1
+    type: light_sw1
+
+  - platform: fendt_caravan
+    name: Bed Room(Bottom)
+    parent_id: lighting_device
+    id: light_sw2
+    type: light_sw2
+
+  - platform: fendt_caravan
+    name: light_sw3_switch
+    parent_id: lighting_device
+    id: light_sw3
+    type: light_sw3
+
+  - platform: fendt_caravan
+    name: Celing
+    parent_id: lighting_device
+    id: light_dim0
+    type: light_dim0
+
+  - platform: fendt_caravan
+    name: Living Room(Top)
+    parent_id: lighting_device
+    id: light_dim1
+    type: light_dim1
+
+  - platform: fendt_caravan
+    name: Ambience Awning Light(Top)
+    parent_id: lighting_device
+    id: light_dim2
+    type: light_dim2
+
+  - platform: fendt_caravan
+    name: light_dim_sw3
+    parent_id: lighting_device
+    id: light_dim3
+    type: light_dim3
+
+  - platform: fendt_caravan
+    name: Bed Room(Top)
+    parent_id: lighting_device
+    id: light_dim4
+    type: light_dim4
