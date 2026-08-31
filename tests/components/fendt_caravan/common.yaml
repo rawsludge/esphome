@@ -71,13 +71,13 @@ switch:
     parent_id: fendt_caravan_alde
     type: alde_water_heater
     name: Water Heater
-    id: alde_water_heater_switch
+    id: alde_water_heater
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
     parent_id: fendt_caravan_alde
     type: alde_water_heater_boost
-    name: Boost Water Temperature
+    name: Water Heater Boost
     id: alde_water_heater_boost
     restore_mode: RESTORE_DEFAULT_OFF
 
@@ -91,7 +91,6 @@ binary_sensor:
     parent_id: fendt_caravan_alde
     type: alde_status
     name: Alde Status
-    id: alde_status
 
 text_sensor:
   - platform: fendt_caravan
@@ -103,10 +102,10 @@ climate:
   - platform: fendt_caravan
     parent_id: fendt_caravan_alde
     type: alde
-    name: Alde Climate Control
-    id: ald_climate_control
-    sensor: temp_in
+    name: Alde Climate
+    id: alde_climate
     heater_switch: alde_heater_switch
+    sensor: temp_in
 
 select:
   - platform: fendt_caravan
