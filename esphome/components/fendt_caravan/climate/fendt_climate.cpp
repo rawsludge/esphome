@@ -5,37 +5,36 @@ static const char *const TAG = "fc.climate";
 
 namespace esphome::fendt_caravan {
 
-void FendtClimate::setup() {
-  this->mode = climate::CLIMATE_MODE_HEAT;
-  if (this->heater_switch_ != nullptr) {
-    this->heater_switch_->publish_state(true);
-    this->heater_switch_->add_on_state_callback([this](bool state) {
-      if (state) {
+Trigger<> *FendtClimate::get_heat_action_trigger() { return &this->heat_action_trigger_; }
+Trigger<> *FendtClimate::get_off_action_trigger() { return &this->off_action_trigger_; }
+
+void FendtClimate::set_heater_switch(switch_::Switch *heater_switch) {
+  this->heater_switch_ = heater_switch;
+  this->heater_switch_->add_on_state_callback([this](bool state) {
+    if (state) {
+      if (this->mode != climate::CLIMATE_MODE_HEAT) {
         this->mode = climate::CLIMATE_MODE_HEAT;
         this->action = climate::CLIMATE_ACTION_HEATING;
-      } else {
+        this->publish_state();
+      }
+    } else {
+      if (this->mode != climate::CLIMATE_MODE_OFF) {
         this->mode = climate::CLIMATE_MODE_OFF;
         this->action = climate::CLIMATE_ACTION_OFF;
+        this->publish_state();
       }
-      this->publish_state();
-    });
-  }
-  this->sensor_->add_on_state_callback([this](float state) {
+    }
+  });
+}
+
+void FendtClimate::set_temperature_sensor(sensor::Sensor *sensor) {
+  this->temperature_sensor_ = sensor;
+  this->temperature_sensor_->add_on_state_callback([this](float state) {
     this->current_temperature = state;
     // current temperature changed, publish state
     this->publish_state();
   });
-  this->current_temperature = this->sensor_->state;
-  this->action = climate::CLIMATE_ACTION_HEATING;
-  this->publish_state();
 }
-
-void FendtClimate::dump_config() {
-  LOG_CLIMATE(TAG, "Caravan Climate Control", this);
-  LOG_SENSOR(TAG, "  Temperature sensor", this->sensor_);
-}
-Trigger<> *FendtClimate::get_heat_action_trigger() { return &this->heat_action_trigger_; }
-Trigger<> *FendtClimate::get_off_action_trigger() { return &this->off_action_trigger_; }
 
 void FendtClimate::control(const climate::ClimateCall &call) {
   Trigger<> *trig = &this->heat_action_trigger_;

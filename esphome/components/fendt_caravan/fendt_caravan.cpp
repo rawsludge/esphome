@@ -20,6 +20,8 @@ void FendtCaravan::dump_config() {
 
 void FendtCaravan::send_command(const std::string &command) {
   ESP_LOGV(TAG, "on_command_send called. Command: %s", command.c_str());
+  if (command == "")
+    return;
   this->add_command_(command);
 }
 
@@ -111,24 +113,23 @@ void FendtCaravan::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t
   }
 }
 void FendtCaravan::add_command_(const std::string &cmd) {
-  int8_t start_index = 0;
-  int8_t end_index = 17;
-  int8_t last_index = cmd.length();
-  bool last_chunk = false;
-  while (!last_chunk) {
+  size_t total_length = cmd.length();
+  size_t start_index = 0;
+  const size_t chunk_size = 17;
+
+  while (start_index < total_length) {
+    size_t remaining = total_length - start_index;
     std::string chunk;
-    if (end_index < last_index) {
-      chunk = cmd.substr(0, 17);
-      chunk += "@";
+
+    if (remaining > chunk_size) {
+      chunk = cmd.substr(start_index, chunk_size) + "@";
+      start_index += chunk_size;
     } else {
-      chunk = cmd.substr(start_index, last_index);
-      last_chunk = true;
+      chunk = cmd.substr(start_index, remaining);
+      start_index += remaining;
     }
+    ESP_LOGD(TAG, "Chunk: %s, size: %d", chunk.c_str(), this->commands_.size());
     this->commands_.push_back(chunk);
-    start_index = end_index;
-    end_index = start_index + 17;
-    if (end_index > last_index)
-      end_index = last_index;
   }
 }
 

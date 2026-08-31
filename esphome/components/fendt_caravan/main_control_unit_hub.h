@@ -13,6 +13,7 @@
 #include "device_decoders.h"
 #include "device_commands.h"
 #include "fendt_caravan.h"
+#include "variable.h"
 
 namespace esphome::fendt_caravan {
 
@@ -21,7 +22,7 @@ class MainControlUnitHub : public FendtCaravanHubBase, public Parented<FendtCara
   void setup() override;
   void dump_config() override;
   void update() override;
-  bool decode(const std::string &name, const std::string &value) override;
+  void decode(IVariable *variable) override;
 
   SUB_SWITCH(main_switch);
   SUB_SENSOR(temp_in);

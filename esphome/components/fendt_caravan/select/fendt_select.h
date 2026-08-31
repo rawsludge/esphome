@@ -11,6 +11,12 @@
 namespace esphome::fendt_caravan {
 class FendtSelect : public select::Select, public Parented<FendtCaravanHubBase> {
  public:
+ protected:
+  void control(const std::string &value) override {
+    auto index = this->index_of(value);
+    if (index.has_value())
+      this->state_callback_.call(index.value());
+  }
 };
 
 }  // namespace esphome::fendt_caravan

@@ -14,7 +14,6 @@ fendt_caravan_ns = cg.esphome_ns.namespace("fendt_caravan")
 FendtCaravan = fendt_caravan_ns.class_(
     "FendtCaravan", ble_client.BLEClientNode, cg.Component
 )
-
 FendtCaravanHubBase = fendt_caravan_ns.class_(
     "FendtCaravanHubBase", cg.PollingComponent
 )
@@ -22,7 +21,6 @@ MainControlUnitHub = fendt_caravan_ns.class_("MainControlUnitHub", FendtCaravanH
 AldeDeviceHub = fendt_caravan_ns.class_("AldeDeviceHub", FendtCaravanHubBase)
 
 CONF_PARENT_ID = "parent_id"
-CONF_KEY_NAME = "key_name"
 CONF_MAIN_CONTROL_UNIT = "main_control_unit"
 CONF_ALDE_UNIT = "alde_unit"
 
@@ -52,9 +50,11 @@ async def to_code(config):
     await ble_client.register_ble_node(var, config)
     if CONF_MAIN_CONTROL_UNIT in config:
         hub = cg.new_Pvariable(config[CONF_MAIN_CONTROL_UNIT][CONF_ID])
+        await cg.register_parented(hub, var)
         await cg.register_component(hub, config[CONF_MAIN_CONTROL_UNIT])
         cg.add(var.set_mcu_hub(hub))
     if CONF_ALDE_UNIT in config:
         hub = cg.new_Pvariable(config[CONF_ALDE_UNIT][CONF_ID])
+        await cg.register_parented(hub, var)
         await cg.register_component(hub, config[CONF_ALDE_UNIT])
         cg.add(var.set_alde_unit_hub(hub))

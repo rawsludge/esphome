@@ -8,7 +8,6 @@ from .. import CONF_PARENT_ID, FendtCaravanHubBase, fendt_caravan_ns
 
 FendtClimate = fendt_caravan_ns.class_(
     "FendtClimate",
-    cg.Component,
     climate.Climate,
     cg.Parented.template(FendtCaravanHubBase),
 )
@@ -38,8 +37,10 @@ CONFIG_SCHEMA = cv.typed_schema(
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     var = await climate.new_climate(config)
-    sens = await cg.get_variable(config[CONF_SENSOR])
-    cg.add(var.set_sensor(sens))
+    # set temperature sensor
+    temp_sens = await cg.get_variable(config[CONF_SENSOR])
+    cg.add(var.set_temperature_sensor(temp_sens))
+    # set heater switch
     heater_switch = await cg.get_variable(config[CONF_HEATER_SWITCH])
     cg.add(var.set_heater_switch(heater_switch))
     if CONF_HEAT_ACTION in config:
@@ -50,6 +51,5 @@ async def to_code(config):
         await automation.build_automation(
             var.get_off_action_trigger(), [], config[CONF_OFF_ACTION]
         )
-    await cg.register_component(var, config)
     await cg.register_parented(var, parent)
     cg.add(getattr(parent, f"set_{config[CONF_TYPE]}_climate")(var))

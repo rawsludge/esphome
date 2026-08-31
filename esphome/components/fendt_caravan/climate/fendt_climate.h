@@ -10,29 +10,30 @@
 
 namespace esphome::fendt_caravan {
 
-class FendtClimate : public Component, public climate::Climate, public Parented<FendtCaravanHubBase> {
+class FendtClimate : public climate::Climate, public Parented<FendtCaravanHubBase> {
  public:
-  void setup() override;
-  void dump_config() override;
-
-  void set_sensor(sensor::Sensor *sensor) { this->sensor_ = sensor; }
+  FendtClimate() {
+    this->mode = climate::ClimateMode::CLIMATE_MODE_HEAT;
+    this->action = climate::CLIMATE_ACTION_HEATING;
+  }
 
   Trigger<> *get_heat_action_trigger();
   Trigger<> *get_off_action_trigger();
 
-  SUB_SWITCH(heater);
-  SUB_SENSOR(sensor);
+  void set_heater_switch(switch_::Switch *heater_switch);
+  void set_temperature_sensor(sensor::Sensor *temp_sensor);
 
  protected:
   void control(const climate::ClimateCall &call) override;
   climate::ClimateTraits traits() override;
 
- protected:
-  sensor::Sensor *sensor_{nullptr};
-
   Trigger<> heat_action_trigger_;
   Trigger<> off_action_trigger_;
   Trigger<> *prev_action_trigger_{nullptr};
+
+ private:
+  sensor::Sensor *temperature_sensor_{nullptr};
+  switch_::Switch *heater_switch_{nullptr};
 };
 }  // namespace esphome::fendt_caravan
 #endif

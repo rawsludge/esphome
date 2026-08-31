@@ -89,57 +89,47 @@ void MainControlUnitHub::setup() {
   this->add_variable(water_level);
 
   if (this->main_switch_switch_) {
-    this->main_switch_switch_->add_on_state_callback([this](bool state) {
+    this->main_switch_switch_->add_on_state_callback([this, hs_key_state, hs_key_long, hs_key](bool state) {
       std::string cmd = "";
-      auto *hs_key_long = GET_VARIABLE(bool, "HS_KEY_LONG");
-      auto *hs_key_state = GET_VARIABLE(int, "HS_KEY_STATE");
       bool current_state = hs_key_state->get_value() > 0;
-
-      ESP_LOGV(TAG, "Main switch state changed. cs: %s", ONOFF(current_state));
-      if (!(hs_key_long && hs_key_state))
+      ESP_LOGD(TAG, "Main switch state changed. cs: %s, state: %s", ONOFF(current_state), ONOFF(state));
+      if (current_state == state)
         return;
-      if (current_state) {
+      if (state) {
         hs_key_long->set_value(true);
         cmd = hs_key_long->get_command();
       } else {
-        auto *hs_key = GET_VARIABLE(bool, "HS_KEY");
         hs_key->set_value(true);
         cmd = hs_key->get_command();
       }
       if (!cmd.empty()) {
-        ESP_LOGV(TAG, "Main switch command:%s", cmd.c_str());
+        ESP_LOGD(TAG, "Main switch command:%s", cmd.c_str());
         this->parent_->send_command(cmd);
       }
     });
   }
   if (this->all_lights_switch_) {
-    this->all_lights_switch_->add_on_state_callback([this](bool state) {
+    this->all_lights_switch_->add_on_state_callback([this, hs_key, hs_key_state](bool state) {
       std::string cmd = "";
-      auto *hs_key = GET_VARIABLE(bool, "HS_KEY");
-      auto *hs_key_state = GET_VARIABLE(int, "HS_KEY_STATE");
       bool current_state = hs_key_state->get_value() == 2;
-      ESP_LOGV(TAG, "Light switch state changed. cs: %s", ONOFF(current_state));
+      if (current_state == state)
+        return;
+      ESP_LOGD(TAG, "Light switch state changed. cs: %s, state: %s", ONOFF(current_state), ONOFF(state));
       if (hs_key && hs_key_state) {
         cmd = hs_key->get_command();
       }
       if (!cmd.empty()) {
-        ESP_LOGV(TAG, "All lights switch command:%s", cmd.c_str());
+        ESP_LOGD(TAG, "All lights switch command:%s", cmd.c_str());
         this->parent_->send_command(cmd);
       }
     });
   }
 
   if (this->floor_heater_switch_) {
-    this->floor_heater_switch_->add_on_state_callback([this](bool state) {
-      std::string cmd = "";
-      auto *floor_heater = GET_VARIABLE(bool, "FLOOR_HEATER_ON");
-      if (floor_heater) {
+    this->floor_heater_switch_->add_on_state_callback([this, floor_heater](bool state) {
+      if (floor_heater->get_value() != state) {
         floor_heater->set_value(state);
-        cmd = floor_heater->get_command();
-      }
-      if (!cmd.empty()) {
-        ESP_LOGV(TAG, "Floor heater switch command:%s", cmd.c_str());
-        this->parent_->send_command(cmd);
+        this->parent_->send_command(floor_heater->get_command());
       }
     });
   }
@@ -167,17 +157,11 @@ void MainControlUnitHub::update() {
     if (temp_out && temp_out->is_active())
       this->temp_out_sensor_->publish_state(temp_out->get_value());
   }
-  if (this->water_level_sensor_) {
-    auto water_level = GET_VARIABLE(int, "WATER_LEVEL");
-    if (water_level && water_level->is_active())
-      this->water_level_sensor_->publish_state(float(water_level->get_value()) / 4.0f);
-  }
 }
 
-bool MainControlUnitHub::decode(const std::string &name, const std::string &value) {
-  bool ret = FendtCaravanHubBase::decode(name, value);
-  if (name == "HS_KEY_STATE") {
-    auto *hs_key_state = GET_VARIABLE(int, name);
+void MainControlUnitHub::decode(IVariable *variable) {
+  if (variable->get_name() == "HS_KEY_STATE") {
+    auto *hs_key_state = static_cast<Variable<int> *>(variable);
     if (hs_key_state->is_active()) {
       if (this->main_switch_switch_)
         this->main_switch_switch_->publish_state(hs_key_state->get_value() > 0);
@@ -185,24 +169,26 @@ bool MainControlUnitHub::decode(const std::string &name, const std::string &valu
         this->all_lights_switch_->publish_state(hs_key_state->get_value() == 2);
     }
   }
-  if (name == "FLOOR_HEATER_ON" && this->floor_heater_switch_) {
-    auto *floor_heater = GET_VARIABLE(bool, "FLOOR_HEATER_ON");
-    if (floor_heater && floor_heater->is_active())
-      this->floor_heater_switch_->publish_state(floor_heater->get_value());
+  if (variable->get_name() == "FLOOR_HEATER_ON" && this->floor_heater_switch_) {
+    auto *floor_heater = static_cast<Variable<bool> *>(variable);
+    this->floor_heater_switch_->publish_state(floor_heater->get_value());
   }
 
-  if (name == "LINE_EN" && this->power_status_binary_sensor_) {
-    auto *power_status = GET_VARIABLE(bool, "LINE_EN");
-    if (power_status && power_status->is_active())
-      this->power_status_binary_sensor_->publish_state(power_status->get_value());
+  if (variable->get_name() == "LINE_EN" && this->power_status_binary_sensor_) {
+    auto *power_status = static_cast<Variable<bool> *>(variable);
+    ;
+    this->power_status_binary_sensor_->publish_state(power_status->get_value());
   }
 
-  if (name == "SOFTWARE_VERSION" && this->software_version_text_sensor_) {
-    auto *software_version = GET_VARIABLE(std::string, "SOFTWARE_VERSION");
-    if (software_version && software_version->is_active())
-      this->software_version_text_sensor_->publish_state(software_version->get_value());
+  if (variable->get_name() == "SOFTWARE_VERSION" && this->software_version_text_sensor_) {
+    auto *software_version = static_cast<Variable<std::string> *>(variable);
+    this->software_version_text_sensor_->publish_state(software_version->get_value());
   }
-  return ret;
+
+  if (variable->get_name() == "WATER_LEVEL" && this->water_level_sensor_) {
+    auto *water_level = static_cast<Variable<int> *>(variable);
+    this->water_level_sensor_->publish_state(float(water_level->get_value() * 100) / 4.0f);
+  }
 }
 }  // namespace esphome::fendt_caravan
 #endif

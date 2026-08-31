@@ -49,14 +49,16 @@ void AldeDeviceHub::setup() {
   auto *heater_el =
       new Variable<std::string>("HEATER_EL", DeviceDecoders::decode_heater_el, Commands::update_heater_el);
   this->add_variable(heater_el);
+
   if (this->alde_heater_electricity_select_) {
-    /*
-    this->alde_heater_electricity_select_->add_on_state_callback([this, heater_el](std::string &state) {
-      if( heater_el->get_value() != state ) {
-        heater_el->set_value( state );
-        this->parent_->send_command( heater_el->get_command() );
+    this->alde_heater_electricity_select_->add_on_state_callback([this, heater_el](size_t state) {
+      ESP_LOGV(TAG, "Current: %s, sate: %d", heater_el->get_value().c_str(), state);
+      auto index = this->alde_heater_electricity_select_->index_of(heater_el->get_value());
+      if (index.has_value() && index.value() != state) {
+        heater_el->set_value(this->alde_heater_electricity_select_->at(state).value());
+        this->parent_->send_command(heater_el->get_command());
       }
-    });*/
+    });
   }
 
   auto *heater_gas = new Variable<bool>("HEATER_GAS", DeviceDecoders::decode_bool, Commands::update_toggle<bool>);
@@ -88,7 +90,7 @@ void AldeDeviceHub::decode(IVariable *variable) {
   } else if (variable->get_name() == "HEATER_TEMP") {
     auto *var = static_cast<Variable<float> *>(variable);
     if (this->alde_climate_) {
-      this->alde_climate_->current_temperature = var->get_value();
+      this->alde_climate_->target_temperature = var->get_value();
       this->alde_climate_->publish_state();
     }
   } else if (variable->get_name() == "HEATER_WATER") {

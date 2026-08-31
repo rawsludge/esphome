@@ -37,9 +37,9 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
   bool command_enabled_ = false;
   volatile bool wait_buffer_ = false;
   uint16_t char_handle_ = 0;
-  std::vector<std::string> commands_{};
+  std::vector<std::string> commands_;
   uint32_t last_command_time_ = 0;
-  std::string last_response_ = {};
+  std::string last_response_ = "";
 
   FendtCaravanHubBase *mcu_hub_{nullptr};
   FendtCaravanHubBase *alde_unit_hub_{nullptr};

@@ -1,12 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import binary_sensor
 import esphome.config_validation as cv
-from esphome.const import (
-    CONF_TYPE,
-    DEVICE_CLASS_HEAT,
-    DEVICE_CLASS_POWER,
-    ENTITY_CATEGORY_CONFIG,
-)
+from esphome.const import CONF_TYPE, DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_PLUG
 
 from .. import CONF_PARENT_ID, FendtCaravanHubBase
 
@@ -17,8 +12,7 @@ CONFIG_SCHEMA = cv.typed_schema(
     {
         CONF_POWER_STATUS: binary_sensor.binary_sensor_schema(
             icon="mdi:power-plug",
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            device_class=DEVICE_CLASS_POWER,
+            device_class=DEVICE_CLASS_PLUG,
         ).extend(
             {
                 cv.Required(CONF_PARENT_ID): cv.use_id(FendtCaravanHubBase),
@@ -26,8 +20,7 @@ CONFIG_SCHEMA = cv.typed_schema(
         ),
         CONF_ALDE_STATUS: binary_sensor.binary_sensor_schema(
             icon="mdi:power-plug",
-            entity_category=ENTITY_CATEGORY_CONFIG,
-            device_class=DEVICE_CLASS_HEAT,
+            device_class=DEVICE_CLASS_CONNECTIVITY,
         ).extend(
             {
                 cv.Required(CONF_PARENT_ID): cv.use_id(FendtCaravanHubBase),
