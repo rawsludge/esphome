@@ -1,5 +1,4 @@
 #include "fendt_caravan.h"
-#include "esphome/core/application.h"
 
 #ifdef USE_ESP32
 
@@ -10,13 +9,6 @@ namespace espbt = esphome::esp32_ble_tracker;
 using namespace std;
 const uint8_t WAIT_COMMAND = 200;
 static const char *const TAG = "fendt_caravan";
-
-void FendtCaravan::dump_config() {
-  ESP_LOGCONFIG(TAG,
-                "Fendt Caravan\n"
-                "  Fendt Address: %s",
-                this->parent()->address_str());
-}
 
 void FendtCaravan::loop() {
   if (!this->command_enabled_)
@@ -105,25 +97,39 @@ void FendtCaravan::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t
       break;
   }
 }
+
+void FendtCaravan::dump_config() {
+  ESP_LOGCONFIG(TAG,
+                "Fendt Caravan\n"
+                "  Fendt Address: %s",
+                this->parent()->address_str());
+}
+
+void FendtCaravan::send_command(const std::string &command) {
+  ESP_LOGV(TAG, "on_command_send called. Command: %s", command.c_str());
+  if (command == "")
+    return;
+  this->add_command_(command);
+}
+
 void FendtCaravan::add_command_(const std::string &cmd) {
-  int8_t start_index = 0;
-  int8_t end_index = 17;
-  int8_t last_index = cmd.length();
-  bool last_chunk = false;
-  while (!last_chunk) {
+  size_t total_length = cmd.length();
+  size_t start_index = 0;
+  const size_t chunk_size = 17;
+
+  while (start_index < total_length) {
+    size_t remaining = total_length - start_index;
     std::string chunk;
-    if (end_index < last_index) {
-      chunk = cmd.substr(0, 17);
-      chunk += "@";
+
+    if (remaining > chunk_size) {
+      chunk = cmd.substr(start_index, chunk_size) + "@";
+      start_index += chunk_size;
     } else {
-      chunk = cmd.substr(start_index, last_index);
-      last_chunk = true;
+      chunk = cmd.substr(start_index, remaining);
+      start_index += remaining;
     }
+    ESP_LOGD(TAG, "Chunk: %s, size: %d", chunk.c_str(), this->commands_.size());
     this->commands_.push_back(chunk);
-    start_index = end_index;
-    end_index = start_index + 17;
-    if (end_index > last_index)
-      end_index = last_index;
   }
 }
 
@@ -134,26 +140,21 @@ void FendtCaravan::on_data_received_(const std::string &data) {
   size_t end = data.find(':');
   key = data.substr(start, end);
   value = data.substr(end + 1);
-  if (this->mcu_device_) {
-    bool result = this->mcu_device_->decode(key, value);
+  if (this->mcu_hub_) {
+    bool result = this->mcu_hub_->decode(key, value);
     if (result)
       return;
   }
-  if (this->alde_heater_device_ != nullptr) {
-    bool catched = this->alde_heater_device_->decode(key, value);
-    if (catched)
+  if (this->alde_unit_hub_) {
+    bool result = this->alde_unit_hub_->decode(key, value);
+    if (result)
       return;
   }
-  if (this->lighting_device_ != nullptr) {
-    bool catched = this->lighting_device_->decode(key, value);
-    if (catched)
+  if (this->lighting_unit_hub_) {
+    bool result = this->lighting_unit_hub_->decode(key, value);
+    if (result)
       return;
   }
-}
-
-void FendtCaravan::on_command_send(const std::string &command) {
-  ESP_LOGV(TAG, "on_command_send called. Command: %s", command.c_str());
-  this->add_command_(command);
 }
 
 }  // namespace esphome::fendt_caravan
