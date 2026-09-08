@@ -167,7 +167,7 @@ light:
 
   - platform: fendt_caravan
     name: Bed Room(Top)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_dim4
     variable_name: LIGHT_DIM4
     light_type: dimmable
