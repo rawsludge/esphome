@@ -9,156 +9,149 @@ ble_client:
 fendt_caravan:
   id: my_caravan
   ble_client_id: my_ble_client
+  main_control_unit:
+    id: fendt_caravan_mcu
+    update_interval: 60s
+  alde_unit:
+    id: fendt_caravan_alde
+    update_interval: 60s
+  lighting_unit:
+    id: fendt_caravan_lighting
+    update_interval: 60s
+  fridge_unit:
+    id: fendt_caravan_fridge
+    update_interval: 60s
 
 sensor:
   - platform: fendt_caravan
-    parent_id: my_caravan
-    type: mcu_device
-    id: main_unit_device
-
-  - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: temp_in
     name: Temperature In
     id: temp_in
 
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: temp_out
     name: Temperature Out
     id: temp_out
 
   - platform: fendt_caravan
-    parent_id: my_caravan
-    type: alde_heater_device
-    name: Alde Heater
-    id: alde_heater_device
-
-  - platform: fendt_caravan
-    parent_id: my_caravan
-    type: lighting_device
-    name: Lighting Device
-    id: lighting_device
-
-  - platform: fendt_caravan
-    parent_id: my_caravan
-    type: fridge_device
-    name: Fridge
-    id: fridge_device
+    parent_id: fendt_caravan_mcu
+    type: water_level
+    name: Water Level
 
 switch:
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: main_switch
     name: Main Switch
     restore_mode: ALWAYS_OFF
 
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: all_lights
     name: All Lights Switch
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: floor_heater
     name: Floor Heater
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_device
-    type: alde_heater_gas
-    name: Alde Gas Switch
-    id: alde_heater_gas
-    restore_mode: RESTORE_DEFAULT_OFF
-
-  - platform: fendt_caravan
-    parent_id: alde_heater_device
+    parent_id: fendt_caravan_alde
     type: alde_heater
     name: Alde Heater Switch
     id: alde_heater_switch
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_device
-    type: alde_heater_water
+    parent_id: fendt_caravan_alde
+    type: alde_heater_gas
+    name: Alde Gas Switch
+    id: alde_heater_gas
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_alde
+    type: alde_water_heater
     name: Water Heater
-    id: alde_water_heater_switch
+    id: alde_water_heater
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: alde_heater_device
-    type: alde_heater_water_temperature
-    name: Boost Water Temperature
-    id: alde_heater_water_temperature
+    parent_id: fendt_caravan_alde
+    type: alde_water_heater_boost
+    name: Water Heater Boost
+    id: alde_water_heater_boost
     restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: fendt_caravan
-    parent_id: fridge_device
+    parent_id: fendt_caravan_fridge
     type: fridge_status
     name: Fridge Status
     id: fridge_status
     restore_mode: RESTORE_DEFAULT_OFF
 
-text_sensor:
+binary_sensor:
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_mcu
     type: power_status
     name: Power Status
 
   - platform: fendt_caravan
-    parent_id: main_unit_device
+    parent_id: fendt_caravan_alde
+    type: alde_status
+    name: Alde Status
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_fridge
+    type: fridge_status
+    name: Fridge Status
+
+text_sensor:
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_mcu
     type: software_version
     name: Software Version
 
   - platform: fendt_caravan
-    parent_id: alde_heater_device
-    type: alde_available
-    name: Alde Available
-    id: alde_status
-
-  - platform: fendt_caravan
-    parent_id: fridge_device
-    type: fridge_available
-    name: Fridge Available
-    id: fridge_available
-
-  - platform: fendt_caravan
-    parent_id: fridge_device
-    type: fridge_source
+    parent_id: fendt_caravan_fridge
+    type: fridge_power_source
     name: Fridge Power Source
-    id: fridge_source
+    id: fridge_power_source
 
   - platform: fendt_caravan
-    parent_id: fridge_device
+    parent_id: fendt_caravan_fridge
     type: fridge_type
     name: Fridge Type
     id: fridge_type
 
 climate:
   - platform: fendt_caravan
-    parent_id: alde_heater_device
-    type: alde_climate
-    name: Alde Climate Control
-    id: ald_climate_control
-    sensor: temp_in
+    parent_id: fendt_caravan_alde
+    type: alde
+    name: Alde Climate
+    id: alde_climate
     heater_switch: alde_heater_switch
+    sensor: temp_in
 
 select:
   - platform: fendt_caravan
-    parent_id: alde_heater_device
+    parent_id: fendt_caravan_alde
     type: alde_heater_electricity
     name: Heater Electric Power
     id: heater_electric_power
 
   - platform: fendt_caravan
-    parent_id: fridge_device
+    parent_id: fendt_caravan_fridge
     type: fridge_mode
     name: Fridge Mode
     id: fridge_mode
 
   - platform: fendt_caravan
-    parent_id: fridge_device
+    parent_id: fendt_caravan_fridge
     type: fridge_temperature
     name: Fridge Temperature
     id: fridge_temperature
@@ -166,54 +159,55 @@ select:
 light:
   - platform: fendt_caravan
     name: Living Room(Bottom)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_sw0
-    type: light_sw0
+    variable_name: LIGHT_SW0
+    light_type: switch
 
   - platform: fendt_caravan
     name: Awning Light
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_sw1
-    type: light_sw1
+    variable_name: LIGHT_SW1
+    light_type: switch
 
   - platform: fendt_caravan
     name: Bed Room(Bottom)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_sw2
-    type: light_sw2
-
-  - platform: fendt_caravan
-    name: light_sw3_switch
-    parent_id: lighting_device
-    id: light_sw3
-    type: light_sw3
+    variable_name: LIGHT_SW2
+    light_type: switch
 
   - platform: fendt_caravan
     name: Celing
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_dim0
-    type: light_dim0
+    variable_name: LIGHT_DIM0
+    light_type: dimmable
 
   - platform: fendt_caravan
     name: Living Room(Top)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_dim1
-    type: light_dim1
+    variable_name: LIGHT_DIM1
+    light_type: dimmable
 
   - platform: fendt_caravan
     name: Ambience Awning Light(Top)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_dim2
-    type: light_dim2
+    variable_name: LIGHT_DIM2
+    light_type: dimmable
 
-  - platform: fendt_caravan
-    name: light_dim_sw3
-    parent_id: lighting_device
-    id: light_dim3
-    type: light_dim3
+#  - platform: fendt_caravan
+#    name: light_dim_sw3
+#    parent_id: lighting_device
+#    id: light_dim3
+#    type: light_dim3
 
   - platform: fendt_caravan
     name: Bed Room(Top)
-    parent_id: lighting_device
+    parent_id: fendt_caravan_lighting
     id: light_dim4
-    type: light_dim4
+    variable_name: LIGHT_DIM4
+    light_type: dimmable

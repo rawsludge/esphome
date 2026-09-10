@@ -1,12 +1,15 @@
 
 #pragma once
 #ifdef USE_ESP32
-#include "esphome/components/fendt_caravan/caravan_component_base.h"
+#include "esphome/components/fendt_caravan/lighting_device_hub.h"
+#include "esphome/components/fendt_caravan/device_commands.h"
+#include "esphome/components/fendt_caravan/device_decoders.h"
+#include "esphome/components/fendt_caravan/variable.h"
 #include "esphome/components/light/light_output.h"
 
 namespace esphome::fendt_caravan {
 
-class FendtLightOutput : public light::LightOutput, public CaravanComponentBase<uint8_t> {
+class FendtLightOutput : public light::LightOutput, public Component, public Parented<LightingDeviceHub> {
  public:
   FendtLightOutput() { this->color_mode_ = light::ColorMode::ON_OFF; };
   FendtLightOutput(light::ColorMode color_mode) { this->color_mode_ = color_mode; };
@@ -17,13 +20,15 @@ class FendtLightOutput : public light::LightOutput, public CaravanComponentBase<
     traits.set_supported_color_modes({this->color_mode_});
     return traits;
   }
-  void setup() override;
-  void write_state(light::LightState *state) override;
-  void setup_state(light::LightState *state) override { this->light_state_ = state; }
+
+  virtual void setup_state(light::LightState *state) override = 0;
+  virtual void write_state(light::LightState *state) override = 0;
+  void set_variable_name(const std::string &var_name) { this->variable_name_ = var_name; };
 
  protected:
-  void on_decoded(const uint8_t &value) override;
   light::LightState *light_state_{nullptr};
+  Variable<int> *variable_{nullptr};
+  std::string variable_name_{};
 
  private:
   light::ColorMode color_mode_ = light::ColorMode::ON_OFF;

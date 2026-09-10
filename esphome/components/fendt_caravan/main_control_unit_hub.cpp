@@ -1,14 +1,11 @@
-#include "control_unit_device_sensor.h"
+#include "main_control_unit_hub.h"
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
 static const char *const TAG = "FC.CU";
 
-void ControlUnitDeviceSensor::setup() {
-  auto *network = new Variable<std::string>("LINE_EN", [](const std::string &value) {
-    const char *tmp[] = {"Connected", "Disconnected"};
-    return DeviceDecoders::decode_bool_str(value, tmp);
-  });
+void MainControlUnitHub::setup() {
+  auto *network = new Variable<bool>("LINE_EN", DeviceDecoders::decode_bool);
   this->add_variable(network);
 
   auto *main_switch = new Variable<bool>("HS_EN", DeviceDecoders::decode_bool, Commands::update_toggle<bool>);
@@ -31,9 +28,6 @@ void ControlUnitDeviceSensor::setup() {
     return DeviceDecoders::decode_bool_str(value, tmp);
   });
   this->add_variable(ac_active);
-
-  auto *water_level = new Variable<std::string>("WATER_LEVEL", DeviceDecoders::decode_str);
-  this->add_variable(water_level);
 
   auto *alarm_clock_active = new Variable<bool>("WAKE_EN", DeviceDecoders::decode_bool);
   this->add_variable(alarm_clock_active);
@@ -90,22 +84,83 @@ void ControlUnitDeviceSensor::setup() {
 
   auto *radio_config = new Variable<bool>("RADIO_CONFIG", DeviceDecoders::decode_bool);
   this->add_variable(radio_config);
+
+  auto *water_level = new Variable<int>("WATER_LEVEL", DeviceDecoders::decode_int);
+  this->add_variable(water_level);
+
+  if (this->main_switch_switch_) {
+    this->main_switch_switch_->add_on_state_callback([this, hs_key_state, hs_key_long, hs_key](bool state) {
+      std::string cmd = "";
+      bool current_state = hs_key_state->get_value() > 0;
+      ESP_LOGD(TAG, "Main switch state changed. cs: %s, state: %s", ONOFF(current_state), ONOFF(state));
+      if (current_state == state)
+        return;
+      if (state) {
+        hs_key_long->set_value(true);
+        cmd = hs_key_long->get_command();
+      } else {
+        hs_key->set_value(true);
+        cmd = hs_key->get_command();
+      }
+      if (!cmd.empty()) {
+        ESP_LOGD(TAG, "Main switch command:%s", cmd.c_str());
+        this->parent_->send_command(cmd);
+      }
+    });
+  }
+  if (this->all_lights_switch_) {
+    this->all_lights_switch_->add_on_state_callback([this, hs_key, hs_key_state](bool state) {
+      std::string cmd = "";
+      bool current_state = hs_key_state->get_value() == 2;
+      if (current_state == state)
+        return;
+      ESP_LOGD(TAG, "Light switch state changed. cs: %s, state: %s", ONOFF(current_state), ONOFF(state));
+      if (hs_key && hs_key_state) {
+        cmd = hs_key->get_command();
+      }
+      if (!cmd.empty()) {
+        ESP_LOGD(TAG, "All lights switch command:%s", cmd.c_str());
+        this->parent_->send_command(cmd);
+      }
+    });
+  }
+
+  if (this->floor_heater_switch_) {
+    this->floor_heater_switch_->add_on_state_callback([this, floor_heater](bool state) {
+      if (floor_heater->get_value() != state) {
+        floor_heater->set_value(state);
+        this->parent_->send_command(floor_heater->get_command());
+      }
+    });
+  }
 }
 
-void ControlUnitDeviceSensor::dump_config() {
+void MainControlUnitHub::dump_config() {
   ESP_LOGCONFIG(TAG, "Fendt Control Unit");
   LOG_SWITCH(TAG, "  Main Switch", this->main_switch_switch_);
   LOG_SWITCH(TAG, "  All Lights Status", this->all_lights_switch_);
   LOG_SENSOR(TAG, "  Temp In", this->temp_in_sensor_);
   LOG_SENSOR(TAG, "  Temp Out", this->temp_out_sensor_);
-  LOG_TEXT_SENSOR(TAG, "  Power Status", this->power_status_text_sensor_);
+  LOG_BINARY_SENSOR(TAG, "  Power Status", this->power_status_binary_sensor_);
   LOG_TEXT_SENSOR(TAG, "  Software Version", this->software_version_text_sensor_);
-  LOG_TEXT_SENSOR(TAG, "  Water Level", this->water_level_text_sensor_);
   LOG_SWITCH(TAG, "  Floor Heater", this->floor_heater_switch_);
 }
 
-void ControlUnitDeviceSensor::on_data_decoded(IVariable *variable) {
-  if (this->main_switch_switch_ && variable->get_name() == "HS_KEY_STATE") {
+void MainControlUnitHub::update() {
+  if (this->temp_in_sensor_) {
+    auto *temp_in = GET_VARIABLE(float, "TEMP_IN");
+    if (temp_in && temp_in->is_active())
+      this->temp_in_sensor_->publish_state(temp_in->get_value());
+  }
+  if (this->temp_out_sensor_) {
+    auto *temp_out = GET_VARIABLE(float, "TEMP_OUT");
+    if (temp_out && temp_out->is_active())
+      this->temp_out_sensor_->publish_state(temp_out->get_value());
+  }
+}
+
+void MainControlUnitHub::decode(IVariable *variable) {
+  if (variable->get_name() == "HS_KEY_STATE") {
     auto *hs_key_state = static_cast<Variable<int> *>(variable);
     if (hs_key_state->is_active()) {
       if (this->main_switch_switch_)
@@ -114,38 +169,25 @@ void ControlUnitDeviceSensor::on_data_decoded(IVariable *variable) {
         this->all_lights_switch_->publish_state(hs_key_state->get_value() == 2);
     }
   }
-}
-
-void ControlUnitDeviceSensor::on_state_change_command(const std::string &tag, const std::string &command) {
-  std::string cmd = command;
-  if (tag == "MAIN_SWITCH") {
-    auto *hs_key_long = GET_VARIABLE(bool, "HS_KEY_LONG");
-    auto *hs_key_state = GET_VARIABLE(int, "HS_KEY_STATE");
-    bool current_state = hs_key_state->get_value() > 0;
-
-    ESP_LOGV(TAG, "Main switch state changed. cs: %s", ONOFF(current_state));
-    if (!(hs_key_long && hs_key_state))
-      return;
-    if (current_state) {
-      hs_key_long->set_value(true);
-      cmd = hs_key_long->get_command();
-    } else {
-      auto *hs_key = GET_VARIABLE(bool, "HS_KEY");
-      hs_key->set_value(true);
-      cmd = hs_key->get_command();
-    }
-  } else if (tag == "ALL_LIGHTS_SWITCH") {
-    auto *hs_key = GET_VARIABLE(bool, "HS_KEY");
-    auto *hs_key_state = GET_VARIABLE(int, "HS_KEY_STATE");
-    bool current_state = hs_key_state->get_value() == 2;
-    ESP_LOGV(TAG, "Light switch state changed. cs: %s", ONOFF(current_state));
-    if (hs_key && hs_key_state) {
-      cmd = hs_key->get_command();
-    }
+  if (variable->get_name() == "FLOOR_HEATER_ON" && this->floor_heater_switch_) {
+    auto *floor_heater = static_cast<Variable<bool> *>(variable);
+    this->floor_heater_switch_->publish_state(floor_heater->get_value());
   }
-  if (!cmd.empty()) {
-    ESP_LOGV(TAG, "Switch state changed command:%s", cmd.c_str());
-    this->command_callback_.call(cmd);
+
+  if (variable->get_name() == "LINE_EN" && this->power_status_binary_sensor_) {
+    auto *power_status = static_cast<Variable<bool> *>(variable);
+    ;
+    this->power_status_binary_sensor_->publish_state(power_status->get_value());
+  }
+
+  if (variable->get_name() == "SOFTWARE_VERSION" && this->software_version_text_sensor_) {
+    auto *software_version = static_cast<Variable<std::string> *>(variable);
+    this->software_version_text_sensor_->publish_state(software_version->get_value());
+  }
+
+  if (variable->get_name() == "WATER_LEVEL" && this->water_level_sensor_) {
+    auto *water_level = static_cast<Variable<int> *>(variable);
+    this->water_level_sensor_->publish_state(float(water_level->get_value() * 100) / 4.0f);
   }
 }
 }  // namespace esphome::fendt_caravan
