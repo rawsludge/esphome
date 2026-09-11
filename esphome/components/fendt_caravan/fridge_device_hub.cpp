@@ -9,8 +9,16 @@ void FridgeDeviceHub::setup() {
   auto *fridge_status = new Variable<bool>("FRIDGE_AVAILABLE", DeviceDecoders::decode_bool);
   this->add_variable(fridge_status);
 
-  auto *status = new Variable<bool>("FRIDGE_ON_OFF", DeviceDecoders::decode_bool, Commands::update_toggle<bool>);
-  this->add_variable(status);
+  auto *fridge_onoff = new Variable<bool>("FRIDGE_ON_OFF", DeviceDecoders::decode_bool, Commands::update_toggle<bool>);
+  this->add_variable(fridge_onoff);
+  if (this->fridge_status_switch_) {
+    this->fridge_status_switch_->add_on_state_callback([this, fridge_onoff](bool state) {
+      if (state != fridge_onoff->get_value()) {
+        fridge_onoff->set_value(state);
+        this->parent_->send_command(fridge_onoff->get_command());
+      }
+    });
+  }
 
   std::vector<std::string> mode_list = {"Performance", "Quite", "Boost"};
   auto *fridge_mode = new Variable<std::string>(
@@ -32,6 +40,16 @@ void FridgeDeviceHub::setup() {
         return std::string("");
       });
   this->add_variable(fridge_mode);
+
+  this->fridge_mode_select_->add_on_state_callback([this, fridge_mode](size_t &state) {
+    if (!this->fridge_mode_select_->at(state).has_value())
+      return;
+    std::string value = this->fridge_mode_select_->at(state).value();
+    if (value != fridge_mode->get_value()) {
+      fridge_mode->set_value(value);
+      this->parent_->send_command(fridge_mode->get_command());
+    }
+  });
 
   std::vector<std::string> source_list = {"Automatic", "Gas", "DirectCurrent", "AlternatingCurrent"};
   auto *fridge_source = new Variable<std::string>("FRIDGE_SOURCE", [source_list](const std::string &value) {
@@ -59,6 +77,17 @@ void FridgeDeviceHub::setup() {
         return Commands::update_int(name, value);
       });
   this->add_variable(fridge_temp);
+  if (this->fridge_temperature_select_) {
+    this->fridge_temperature_select_->add_on_state_callback([this, fridge_temp](size_t state) {
+      if (!this->fridge_temperature_select_->at(state))
+        return;
+      std::string value = this->fridge_temperature_select_->at(state).value();
+      if (fridge_temp->get_value() != value) {
+        fridge_temp->set_value(value);
+        this->parent_->send_command(fridge_temp->get_command());
+      }
+    });
+  }
 }
 
 void FridgeDeviceHub::dump_config() {
