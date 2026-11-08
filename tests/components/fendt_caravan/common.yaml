@@ -1,6 +1,3 @@
-packages:
-  ble: !include ../../test_build_components/common/ble/esp32-idf.yaml
-
 ble_client:
   - mac_address: DE:00:40:10:62:39
     id: my_ble_client
@@ -178,12 +175,6 @@ light:
     variable_name: LIGHT_SW2
     light_type: switch
 
-#  - platform: fendt_caravan
-#    name: light_sw3_switch
-#    parent_id: lighting_device
-#    id: light_sw3
-#    type: light_sw3
-
   - platform: fendt_caravan
     name: Celing
     parent_id: fendt_caravan_lighting
@@ -204,12 +195,6 @@ light:
     id: light_dim2
     variable_name: LIGHT_DIM2
     light_type: dimmable
-
-#  - platform: fendt_caravan
-#    name: light_dim_sw3
-#    parent_id: lighting_device
-#    id: light_dim3
-#    type: light_dim3
 
   - platform: fendt_caravan
     name: Bed Room(Top)

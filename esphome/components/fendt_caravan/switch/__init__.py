@@ -2,8 +2,10 @@ import esphome.codegen as cg
 from esphome.components import switch
 import esphome.config_validation as cv
 from esphome.const import CONF_TYPE
+from esphome.cpp_generator import MockObjClass
+from esphome.types import ConfigType
 
-from .. import CONF_PARENT_ID, FendtCaravanHubBase
+from .. import CONF_PARENT_ID, AldeDeviceHub, FridgeDeviceHub, MainControlUnitHub
 
 CONF_MAIN_SWITCH = "main_switch"
 CONF_ALL_LIGHTS = "all_lights"
@@ -15,32 +17,32 @@ CONF_ALDE_WATER_HEATER_BOOST = "alde_water_heater_boost"
 CONF_FRIDGE_STATUS = "fridge_status"
 
 
-def _switch_schema(icon: str = cv.UNDEFINED) -> cv.Schema:
+def _switch_schema(hub: MockObjClass, icon: str = cv.UNDEFINED) -> cv.Schema:
     return switch.switch_schema(
         switch.ApplySwitch,
         icon=icon,
     ).extend(
         {
-            cv.Required(CONF_PARENT_ID): cv.use_id(FendtCaravanHubBase),
+            cv.Required(CONF_PARENT_ID): cv.use_id(hub),
         }
     )
 
 
 CONFIG_SCHEMA = cv.typed_schema(
     {
-        CONF_MAIN_SWITCH: _switch_schema(icon="mdi:switch"),
-        CONF_ALL_LIGHTS: _switch_schema(icon="mdi:lamp"),
-        CONF_FLOOR_HEATER: _switch_schema(icon="mdi:heat-wave"),
-        CONF_ALDE_HEATER: _switch_schema(icon="mdi:radiator"),
-        CONF_ALDE_HEATER_GAS: _switch_schema(icon="mdi:gas-burner"),
-        CONF_ALDE_WATER_HEATER: _switch_schema(icon="mdi:water-boiler"),
-        CONF_ALDE_WATER_HEATER_BOOST: _switch_schema(icon="mdi:fire"),
-        CONF_FRIDGE_STATUS: _switch_schema(icon="mdi:power"),
+        CONF_MAIN_SWITCH: _switch_schema(MainControlUnitHub, icon="mdi:switch"),
+        CONF_ALL_LIGHTS: _switch_schema(MainControlUnitHub, icon="mdi:lamp"),
+        CONF_FLOOR_HEATER: _switch_schema(MainControlUnitHub, icon="mdi:heat-wave"),
+        CONF_ALDE_HEATER: _switch_schema(AldeDeviceHub, icon="mdi:radiator"),
+        CONF_ALDE_HEATER_GAS: _switch_schema(AldeDeviceHub, icon="mdi:gas-burner"),
+        CONF_ALDE_WATER_HEATER: _switch_schema(AldeDeviceHub, icon="mdi:water-boiler"),
+        CONF_ALDE_WATER_HEATER_BOOST: _switch_schema(AldeDeviceHub, icon="mdi:fire"),
+        CONF_FRIDGE_STATUS: _switch_schema(FridgeDeviceHub, icon="mdi:power"),
     }
 )
 
 
-async def to_code(config):
+async def to_code(config: ConfigType) -> None:
     hub = await cg.get_variable(config[CONF_PARENT_ID])
     switches = switch.sub_switches(config, parent=hub)
     await switches.create(

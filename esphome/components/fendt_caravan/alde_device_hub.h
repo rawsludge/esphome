@@ -36,7 +36,7 @@ class AldeDeviceHub : public FendtCaravanHubBase, public Parented<FendtCaravan> 
   SUB_SELECT(alde_heater_electricity);
   SUB_SWITCH(alde_heater_gas);
   void write_state(switch_::Switch *sw, bool state);
-  void select_control(select::Select *sel, size_t state);
+  void select_control(select::Select *sel, size_t index);
 
  protected:
   bool decode(const char *key, const char *value) override;

@@ -31,7 +31,6 @@ class DeviceDecoders {
   static time_t decode_date(const std::string &data);
   static time_t decode_time(const std::string &data);
 
-  static std::string decode_heater_el(const std::string &data) { return data; }
   static std::string decode_int_str(const std::string &value, const std::vector<std::string> &list);
 };
 

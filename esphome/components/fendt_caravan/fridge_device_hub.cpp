@@ -17,7 +17,8 @@ enum class Key : uint8_t {
 static constexpr const char *KEY_NAMES[] = {
     "FRIDGE_AVAILABLE", "FRIDGE_ON_OFF", "FRIDGE_MODE", "FRIDGE_SOURCE", "FRIDGE_TEMP", "FRIDGE_TYPE",
 };
-static constexpr const char *MODE_OPTIONS[] = {"Performance", "Quiet", "Boost"};
+// The panel's FRIDGE_MODE value for each select option: Performance, Quiet, Boost
+static constexpr uint8_t MODE_DEVICE_VALUES[] = {0, 2, 3};
 static constexpr const char *SOURCE_OPTIONS[] = {"Automatic", "Gas", "DirectCurrent", "AlternatingCurrent"};
 static constexpr const char *TYPE_OPTIONS[] = {"None", "DometicAbsorberFridge", "HobbyCompressorRMVOC90",
                                                "DOMETICRC104Compressor", "DOMETIC_RUC"};
@@ -54,14 +55,11 @@ bool FridgeDeviceHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_FRIDGE_MODE: {
-      // Device sends: 0=Performance, 2=Quiet, 3=Boost (1 is treated as Performance)
-      // Select expects indices 0, 1, 2 for ["Performance", "Quiet", "Boost"]
-      int mode_idx = DeviceDecoders::decode_int(value);
-      if (mode_idx > 0)
-        mode_idx -= 1;  // Map device values: 0→0, 2→1, 3→2
-      if (mode_idx >= 0 && mode_idx < 3 && this->fridge_mode_select_) {
-        this->fridge_mode_select_->publish_state(MODE_OPTIONS[mode_idx]);
-      }
+      const int raw = DeviceDecoders::decode_int(value);
+      // 1 is also reported as Performance
+      const size_t idx = raw <= 1 ? 0 : static_cast<size_t>(raw - 1);
+      if (this->fridge_mode_select_ != nullptr && idx < std::size(MODE_DEVICE_VALUES))
+        this->fridge_mode_select_->publish_state(idx);
       break;
     }
     case Key::KEY_FRIDGE_SOURCE: {
@@ -73,11 +71,9 @@ bool FridgeDeviceHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_FRIDGE_TEMP: {
-      // Device sends 1-5; select expects string options "1", "2", "3", "4", "5"
-      int temp_idx = DeviceDecoders::decode_int(value);
-      if (temp_idx >= 1 && temp_idx <= 5 && this->fridge_temperature_select_) {
-        this->fridge_temperature_select_->publish_state(std::string(value));
-      }
+      const int temp = DeviceDecoders::decode_int(value);
+      if (this->fridge_temperature_select_ != nullptr && temp >= 1 && temp <= 5)
+        this->fridge_temperature_select_->publish_state(static_cast<size_t>(temp - 1));
       break;
     }
     case Key::KEY_FRIDGE_TYPE: {
@@ -99,20 +95,13 @@ void FridgeDeviceHub::write_state(switch_::Switch *sw, bool state) {
     this->parent_->send_command(Commands::update_toggle("FRIDGE_ON_OFF"));
   }
 }
-void FridgeDeviceHub::select_control(select::Select *sel, size_t state) {
+void FridgeDeviceHub::select_control(select::Select *sel, size_t index) {
   if (sel == this->fridge_mode_select_) {
-    int mode_idx = state;
-    // Apply same mapping as in setup(): if state > 0, state += 1
-    // Maps: 0→0 (Performance), 1→2 (Quiet), 2→3 (Boost)
-    if (mode_idx > 0)
-      mode_idx += 1;
-    this->parent_->send_command(Commands::update_int("FRIDGE_MODE", mode_idx));
+    if (index < std::size(MODE_DEVICE_VALUES))
+      this->parent_->send_command(Commands::update_int("FRIDGE_MODE", MODE_DEVICE_VALUES[index]));
   } else if (sel == this->fridge_temperature_select_) {
-    // Convert index to int (options are 0, 1, 2, 3, 4 corresponding to "1", "2", "3", "4", "5")
-    int temp_idx = static_cast<int>(state) + 1;
-    if (temp_idx >= 1 && temp_idx <= 5) {
-      this->parent_->send_command(Commands::update_int("FRIDGE_TEMP", temp_idx));
-    }
+    // Option index 0-4 is temperature level 1-5
+    this->parent_->send_command(Commands::update_int("FRIDGE_TEMP", index + 1));
   }
 }
 

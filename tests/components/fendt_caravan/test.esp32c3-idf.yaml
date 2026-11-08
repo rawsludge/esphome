@@ -1,2 +1,0 @@
-packages:
-  fendt_caravan: !include common.yaml

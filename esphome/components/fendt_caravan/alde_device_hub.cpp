@@ -57,15 +57,11 @@ void AldeDeviceHub::write_state(switch_::Switch *sw, bool state) {
   }
 }
 
-void AldeDeviceHub::select_control(select::Select *sel, size_t state) {
+void AldeDeviceHub::select_control(select::Select *sel, size_t index) {
   if (sel == this->alde_heater_electricity_select_) {
-    ESP_LOGV(TAG, "Heater electricity select state: %d", state);
-    auto option_state = this->alde_heater_electricity_select_->at(state);
-    if (option_state.has_value()) {
-      std::string cmd = Commands::update_heater_el("HEATER_EL", option_state.value());
-      this->parent_->send_command(cmd);
-    }
-  };
+    ESP_LOGV(TAG, "Heater electricity select index: %zu", index);
+    this->parent_->send_command(Commands::update_net("HEATER_EL", index));
+  }
 }
 
 bool AldeDeviceHub::decode(const char *key, const char *value) {
@@ -110,8 +106,11 @@ bool AldeDeviceHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_HEATER_EL: {
-      if (this->alde_heater_electricity_select_)
-        this->alde_heater_electricity_select_->publish_state(value);
+      // The panel reports and takes 0-3, the index of "Off", "1 kW", "2 kW", "3 kW"
+      const int idx = DeviceDecoders::decode_int(value);
+      if (this->alde_heater_electricity_select_ != nullptr && idx >= 0 &&
+          static_cast<size_t>(idx) < this->alde_heater_electricity_select_->size())
+        this->alde_heater_electricity_select_->publish_state(static_cast<size_t>(idx));
       break;
     }
     case Key::KEY_HEATER_GAS: {

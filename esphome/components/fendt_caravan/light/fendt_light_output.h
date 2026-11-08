@@ -18,7 +18,7 @@ class FendtLightOutput : public light::LightOutput, public Parented<LightingDevi
     traits.set_supported_color_modes({this->color_mode_});
     return traits;
   }
-  void set_variable_name(StringRef var_name) { this->variable_name_ = var_name; }
+  void set_variable_name(const char *var_name) { this->variable_name_ = StringRef(var_name); }
   void write_state(light::LightState *state) override = 0;
 
  protected:

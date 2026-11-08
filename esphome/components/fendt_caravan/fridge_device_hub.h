@@ -18,7 +18,7 @@ class FridgeDeviceHub : public FendtCaravanHubBase, public Parented<FendtCaravan
   void dump_config() override;
   bool decode(const char *key, const char *value) override;
   void write_state(switch_::Switch *sw, bool state);
-  void select_control(select::Select *sel, size_t state);
+  void select_control(select::Select *sel, size_t index);
 
   SUB_BINARY_SENSOR(fridge_status);
   SUB_SWITCH(fridge_status);

@@ -3,8 +3,9 @@ import esphome.codegen as cg
 from esphome.components import climate, sensor, switch
 import esphome.config_validation as cv
 from esphome.const import CONF_HEAT_ACTION, CONF_SENSOR, CONF_TYPE
+from esphome.types import ConfigType
 
-from .. import CONF_PARENT_ID, FendtCaravanHubBase, fendt_caravan_ns
+from .. import CONF_PARENT_ID, AldeDeviceHub, FendtCaravanHubBase, fendt_caravan_ns
 
 FendtClimate = fendt_caravan_ns.class_(
     "FendtClimate",
@@ -19,7 +20,7 @@ CONFIG_SCHEMA = cv.typed_schema(
     {
         "alde": climate.climate_schema(FendtClimate).extend(
             {
-                cv.Required(CONF_PARENT_ID): cv.use_id(FendtCaravanHubBase),
+                cv.Required(CONF_PARENT_ID): cv.use_id(AldeDeviceHub),
                 cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
                 cv.Required(CONF_HEATER_SWITCH): cv.use_id(switch.Switch),
                 cv.Optional(CONF_HEAT_ACTION): automation.validate_automation(
@@ -34,7 +35,7 @@ CONFIG_SCHEMA = cv.typed_schema(
 )
 
 
-async def to_code(config):
+async def to_code(config: ConfigType) -> None:
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     var = await climate.new_climate(config)
     # set temperature sensor
