@@ -1,14 +1,17 @@
 #include "device_decoders.h"
+#include <cstdlib>
+#include "esphome/core/helpers.h"
+#include "esphome/core/log.h"
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
-ESPHOME_LOG_TAG(TAG, "FC.decoders");
+ESPHOME_LOG_TAG(TAG, "fendt_caravan.decoders");
 
 float DeviceDecoders::decode_float(const char *data) {
   char buffer[128];
   memset(buffer, 0, sizeof(buffer));
   if (strlen(data) >= sizeof(buffer) - 1) {
-    ESP_LOGE(TAG, "Data too long for decode_float: '%s'", data);
+    ESP_LOGW(TAG, "Data too long for decode_float: '%s'", data);
     return 0.0f;
   }
   std::strncpy(buffer, data, strlen(data));
@@ -46,39 +49,6 @@ int DeviceDecoders::decode_int(const char *value) {
   if (val.has_value())
     return val.value();
   return 0;
-}
-
-time_t DeviceDecoders::decode_date(const std::string &data) {
-  std::istringstream date(data);
-  tm tm = {};
-  date >> std::get_time(&tm, "%d.%m.%y");
-  if (date.fail()) {
-    ESP_LOGE(TAG, "Date Parsing failed");
-    return 0;
-  }
-  time_t ret = mktime(&tm);
-  return ret;
-}
-time_t DeviceDecoders::decode_time(const std::string &data) {
-  std::istringstream date(data);
-  tm tm = {};
-  date >> std::get_time(&tm, "%H:%M:%S");
-  if (date.fail()) {
-    ESP_LOGE(TAG, "Date Parsing failed");
-    return 0;
-  }
-  time_t ret = mktime(&tm);
-  return ret;
-}
-std::string DeviceDecoders::decode_int_str(const std::string &value, const std::vector<std::string> &list) {
-  int val;
-  auto result = parse_number<int>(value.c_str());
-  if (!result.has_value()) {
-    ESP_LOGE(TAG, "Int list parse error. Data: '%s'", value.c_str());
-    return "";
-  }
-  val = result.value();
-  return list.at(val);
 }
 
 }  // namespace esphome::fendt_caravan

@@ -10,9 +10,8 @@ from esphome.const import (
 )
 from esphome.types import ConfigType
 
-from .. import CONF_PARENT_ID, MainControlUnitHub, fendt_caravan_ns
+from .. import CONF_PARENT_ID, MainControlUnitHub
 
-FendtSensor = fendt_caravan_ns.class_("FendtSensor", sensor.Sensor)
 CONF_TEMP_IN = "temp_in"
 CONF_TEMP_OUT = "temp_out"
 CONF_WATER_LEVEL = "water_level"
@@ -26,7 +25,6 @@ def _sensor_schema(
     icon: str = cv.UNDEFINED,
 ) -> cv.Schema:
     return sensor.sensor_schema(
-        FendtSensor,
         unit_of_measurement=unit_of_measurement,
         accuracy_decimals=accuracy_decimals,
         device_class=device_class,
@@ -66,5 +64,4 @@ CONFIG_SCHEMA = cv.typed_schema(
 async def to_code(config: ConfigType) -> None:
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     var = await sensor.new_sensor(config)
-    await cg.register_parented(var, parent)
     cg.add(getattr(parent, f"set_{config[CONF_TYPE]}_sensor")(var))

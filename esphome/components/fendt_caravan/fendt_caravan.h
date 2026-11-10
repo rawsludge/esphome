@@ -2,38 +2,35 @@
 
 #ifdef USE_ESP32
 #include <array>
-#include <string>
+#include <cstring>
 #include "esphome/components/ble_client/ble_client.h"
 #include "esphome/components/esp32_ble_client/ble_characteristic.h"
 #include "esphome/core/application.h"
 #include "esphome/core/component.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
-#include "esphome/core/string_ref.h"
 #include "fendt_caravan_hub_base.h"
 #include "framing.h"
 
 namespace esphome::fendt_caravan {
-using namespace std;
 
 class FendtCaravan : public Component, public ble_client::BLEClientNode {
  public:
   /// `handshake` is the "net-BT_ID-..." line that opens the session; a string literal from codegen
   explicit FendtCaravan(const char *handshake) : handshake_(handshake) {}
-  void setup() override {};
   void loop() override;
 
   void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if,
                            esp_ble_gattc_cb_param_t *param) override;
 
-  void set_address(uint64_t address) { address_ = address; }
   void set_mcu_hub(FendtCaravanHubBase *mcu_hub) { this->mcu_hub_ = mcu_hub; }
   void set_alde_unit_hub(FendtCaravanHubBase *alde_unit_hub) { this->alde_unit_hub_ = alde_unit_hub; }
   void set_fridge_unit_hub(FendtCaravanHubBase *fridge_unit_hub) { this->fridge_unit_hub_ = fridge_unit_hub; }
   void set_lighting_unit_hub(FendtCaravanHubBase *lighting_unit_hub) { this->lighting_unit_hub_ = lighting_unit_hub; }
 
   void dump_config() override;
-  void send_command(const std::string &command);
+  /// Queues a NUL-terminated command; nullptr (a command that did not fit its buffer) is ignored
+  void send_command(const char *command);
 
  protected:
   // The handshake alone takes 3 chunks
@@ -46,6 +43,7 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
   };
 
   bool add_command_(const char *cmd, size_t len);
+  // Splits the report in place at the first ':'
   void on_data_received_(char *data);
   void reset_session_();
 

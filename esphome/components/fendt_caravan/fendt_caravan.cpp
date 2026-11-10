@@ -6,6 +6,7 @@ namespace esphome::fendt_caravan {
 
 namespace espbt = esphome::esp32_ble_tracker;
 
+// Gap between two chunk writes
 static constexpr uint32_t WAIT_COMMAND_MS = 200;
 ESPHOME_LOG_TAG(TAG, "fendt_caravan");
 static const char *const SERVICE_UUID = "C7841029-FE7C-4894-8532-F97908EF1AE4";
@@ -26,13 +27,14 @@ void FendtCaravan::loop() {
                                          this->char_handle_, chunk.len, reinterpret_cast<uint8_t *>(chunk.data.data()),
                                          ESP_GATT_WRITE_TYPE_RSP, ESP_GATT_AUTH_REQ_NONE);
   if (status != ESP_OK) {
-    // Keep the chunk queued; a disconnect clears the queue, so this cannot retry forever
+    // Keep the chunk queued and retry; a disconnect clears the queue, so this cannot retry forever
     ESP_LOGW(TAG, "Writing command failed (%d), will retry", status);
     this->status_set_warning();
     return;
   }
   this->status_clear_warning();
-  ESP_LOGV(TAG, "Chunk sent: %.*s", chunk.len, chunk.data.data());
+
+  ESP_LOGV(TAG, "Command sent: %.*s", chunk.len, chunk.data.data());
   this->commands_.pop();
 }
 
@@ -52,24 +54,21 @@ void FendtCaravan::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t
         break;
       }
       this->char_handle_ = chr->handle;
-      auto status = esp_ble_gattc_register_for_notify(this->parent()->get_gattc_if(), this->parent()->get_remote_bda(),
-                                                      chr->handle);
-      if (status) {
-        ESP_LOGW(TAG, "esp_ble_gattc_register_for_notify failed, status=%d", status);
+      // The client writes the CCC descriptor and releases its service list once every node is established
+      auto status = this->parent()->register_for_notify(chr->handle);
+      if (status != ESP_OK) {
+        ESP_LOGW(TAG, "register_for_notify failed, status=%d", status);
       }
-      auto *descr = chr->get_descriptor(0x2902);
-      if (descr == nullptr) {
-        ESP_LOGW(TAG, "No CCC descriptor found at service");
+      break;
+    }
+    case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
+      if (param->reg_for_notify.handle != this->char_handle_)
+        break;
+      if (param->reg_for_notify.status != ESP_GATT_OK) {
+        ESP_LOGW(TAG, "Registering for notifications failed, status=%d", param->reg_for_notify.status);
         break;
       }
-      uint8_t cccd_value[2] = {1, 0};
-      status =
-          esp_ble_gattc_write_char_descr(this->parent()->get_gattc_if(), this->parent()->get_conn_id(), descr->handle,
-                                         2, cccd_value, ESP_GATT_WRITE_TYPE_RSP, ESP_GATT_AUTH_REQ_NONE);
-      if (status) {
-        ESP_LOGW(TAG, "Error sending CCC descriptor write request, status=%d", status);
-        break;
-      }
+      this->node_state = espbt::ClientState::ESTABLISHED;
       this->add_command_(this->handshake_, strlen(this->handshake_));
       this->add_command_(BT_VARS_COMMAND, sizeof(BT_VARS_COMMAND) - 1);
       break;
@@ -85,7 +84,7 @@ void FendtCaravan::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t
       if (result == FrameResult::FRAME_RESULT_OVERFLOW) {
         ESP_LOGW(TAG, "Report too long, dropped");
       } else if (result == FrameResult::FRAME_RESULT_COMPLETE) {
-        ESP_LOGD(TAG, "Notified value: %s", this->rx_.data());
+        ESP_LOGV(TAG, "Notified value: %s", this->rx_.data());
         this->on_data_received_(this->rx_.data());
         this->rx_.reset();
       }
@@ -103,11 +102,15 @@ void FendtCaravan::dump_config() {
                 this->parent()->address_str());
 }
 
-void FendtCaravan::send_command(const std::string &command) {
-  ESP_LOGV(TAG, "send_command: %s", command.c_str());
+void FendtCaravan::send_command(const char *command) {
+  if (command == nullptr) {
+    ESP_LOGW(TAG, "Command too long, dropped");
+    return;
+  }
+  ESP_LOGV(TAG, "send_command: %s", command);
   if (this->wait_handshake_)
     return;
-  this->add_command_(command.data(), command.size());
+  this->add_command_(command, strlen(command));
 }
 
 bool FendtCaravan::add_command_(const char *cmd, size_t len) {
@@ -127,6 +130,7 @@ bool FendtCaravan::add_command_(const char *cmd, size_t len) {
   return true;
 }
 
+// A link lost mid-session must not leave the next session waiting for a BT_STOP that never comes
 void FendtCaravan::reset_session_() {
   this->wait_handshake_ = false;
   this->char_handle_ = 0;
@@ -141,7 +145,7 @@ void FendtCaravan::on_data_received_(char *data) {
     return;
   }
   *value++ = '\0';
-  ESP_LOGD(TAG, "Data: '%s', Value: '%s'", data, value);
+  ESP_LOGV(TAG, "Data: '%s', Value: '%s'", data, value);
 
   if (!strncmp(data, "BT_START", 8)) {
     this->wait_handshake_ = true;

@@ -1,12 +1,12 @@
 ble_client:
-  - mac_address: DE:00:40:10:62:39
+  - mac_address: AA:BB:CC:DD:EE:FF
     id: my_ble_client
     auto_connect: true
 
 fendt_caravan:
   id: my_caravan
   ble_client_id: my_ble_client
-  bt_id: C0:EE:FB:90:B0:A7
+  bt_id: 11:22:33:44:55:66
   main_control_unit:
     id: fendt_caravan_mcu
     update_interval: 60s

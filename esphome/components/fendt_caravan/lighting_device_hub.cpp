@@ -48,11 +48,12 @@ bool LightingDeviceHub::decode(const char *key, const char *value) {
   return false;
 }
 void LightingDeviceHub::write_state(const char *key_name, light::LightState *state) {
+  char cmd[COMMAND_MAX];
 #ifdef LIGHTING_DEVICE_BINARY_LIGHT_COUNT
   for (auto &entry : this->binary_states_) {
     if (entry.key == key_name) {
       if (entry.is_on != state->remote_values.is_on()) {
-        this->parent_->send_command(Commands::update_toggle(entry.key));
+        this->parent_->send_command(Commands::update_toggle(cmd, entry.key.c_str()));
       }
       return;
     }
@@ -62,11 +63,11 @@ void LightingDeviceHub::write_state(const char *key_name, light::LightState *sta
   for (auto &entry : this->float_states_) {
     if (entry.key == key_name) {
       if (entry.is_on != state->remote_values.is_on()) {
-        this->parent_->send_command(Commands::update_toggle(entry.key));
+        this->parent_->send_command(Commands::update_toggle(cmd, entry.key.c_str()));
       } else {
         if (state->remote_values.is_on()) {
           float brightness = state->remote_values.get_brightness();
-          this->parent_->send_command(Commands::update_int(entry.key, (int) (brightness * 15.0f)));
+          this->parent_->send_command(Commands::update_int(cmd, entry.key.c_str(), (int) (brightness * 15.0f)));
         }
       }
       return;

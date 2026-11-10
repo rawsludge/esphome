@@ -22,8 +22,9 @@ void AldeDeviceHub::setup() {
   if (this->alde_climate_) {
     this->alde_climate_->add_on_control_callback([this](climate::ClimateCall &call) {
       if (call.get_target_temperature().has_value()) {
-        float target_temp = call.get_target_temperature().value();
-        this->parent_->send_command(Commands::update_temp_10("HEATER_TEMP", target_temp));
+        char cmd[COMMAND_MAX];
+        this->parent_->send_command(
+            Commands::update_temp_10(cmd, "HEATER_TEMP", call.get_target_temperature().value()));
       }
     });
   }
@@ -42,25 +43,23 @@ void AldeDeviceHub::dump_config() {
 
 void AldeDeviceHub::write_state(switch_::Switch *sw, bool state) {
   ESP_LOGD(TAG, "Write state called for switch: %p, state: %s", sw, TRUEFALSE(state));
+  char cmd[COMMAND_MAX];
   if (sw == this->alde_heater_switch_) {
-    std::string cmd = Commands::update_toggle("HEATER_ONOFF");
-    this->parent_->send_command(cmd);
+    this->parent_->send_command(Commands::update_toggle(cmd, "HEATER_ONOFF"));
   } else if (sw == this->alde_water_heater_switch_) {
-    std::string cmd = Commands::update_toggle("HEATER_WATER");
-    this->parent_->send_command(cmd);
+    this->parent_->send_command(Commands::update_toggle(cmd, "HEATER_WATER"));
   } else if (sw == this->alde_water_heater_boost_switch_) {
-    std::string cmd = Commands::update_toggle("HEATER_WATER_TEMP");
-    this->parent_->send_command(cmd);
+    this->parent_->send_command(Commands::update_toggle(cmd, "HEATER_WATER_TEMP"));
   } else if (sw == this->alde_heater_gas_switch_) {
-    std::string cmd = Commands::update_run("HEATER_GAS");
-    this->parent_->send_command(cmd);
+    this->parent_->send_command(Commands::update_run(cmd, "HEATER_GAS"));
   }
 }
 
 void AldeDeviceHub::select_control(select::Select *sel, size_t index) {
   if (sel == this->alde_heater_electricity_select_) {
     ESP_LOGV(TAG, "Heater electricity select index: %zu", index);
-    this->parent_->send_command(Commands::update_net("HEATER_EL", index));
+    char cmd[COMMAND_MAX];
+    this->parent_->send_command(Commands::update_net(cmd, "HEATER_EL", index));
   }
 }
 

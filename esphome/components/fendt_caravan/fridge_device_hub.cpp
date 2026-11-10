@@ -92,16 +92,18 @@ bool FridgeDeviceHub::decode(const char *key, const char *value) {
 
 void FridgeDeviceHub::write_state(switch_::Switch *sw, bool state) {
   if (sw == this->fridge_status_switch_) {
-    this->parent_->send_command(Commands::update_toggle("FRIDGE_ON_OFF"));
+    char cmd[COMMAND_MAX];
+    this->parent_->send_command(Commands::update_toggle(cmd, "FRIDGE_ON_OFF"));
   }
 }
 void FridgeDeviceHub::select_control(select::Select *sel, size_t index) {
+  char cmd[COMMAND_MAX];
   if (sel == this->fridge_mode_select_) {
     if (index < std::size(MODE_DEVICE_VALUES))
-      this->parent_->send_command(Commands::update_int("FRIDGE_MODE", MODE_DEVICE_VALUES[index]));
+      this->parent_->send_command(Commands::update_int(cmd, "FRIDGE_MODE", MODE_DEVICE_VALUES[index]));
   } else if (sel == this->fridge_temperature_select_) {
     // Option index 0-4 is temperature level 1-5
-    this->parent_->send_command(Commands::update_int("FRIDGE_TEMP", index + 1));
+    this->parent_->send_command(Commands::update_int(cmd, "FRIDGE_TEMP", index + 1));
   }
 }
 

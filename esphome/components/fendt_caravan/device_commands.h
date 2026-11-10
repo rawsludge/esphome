@@ -1,43 +1,47 @@
 #pragma once
 
 #ifdef USE_ESP32
-#include "esphome/core/string_ref.h"
-#include "esphome/core/log.h"
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 namespace esphome::fendt_caravan {
 
+/// Buffer size for one command, including the terminating NUL
+static constexpr size_t COMMAND_MAX = 48;
+
+/// Builds panel commands into a caller-owned buffer of COMMAND_MAX bytes.
+/// Each returns `buf`, or nullptr when the command does not fit.
 class Commands {
  public:
-  static std::string update_toggle(const std::string &name, bool value = true) {
-    std::string command = "cmd-tgl:" + name;
-    return command;
-  }
-  static std::string update_run(const std::string &name, bool value = true) {
-    std::string ret_value;
-    if (name == "HS_KEY" || name == "HS_KEY_LONG") {
-      ret_value = "net-" + name;
-    } else {
-      ret_value = std::string("cmd-run:") + name;
-    }
-    return ret_value;
+  static const char *update_toggle(char *buf, const char *name) { return format_command(buf, "cmd-tgl:%s", name); }
+
+  static const char *update_run(char *buf, const char *name) {
+    if (strcmp(name, "HS_KEY") == 0 || strcmp(name, "HS_KEY_LONG") == 0)
+      return format_command(buf, "net-%s", name);
+    return format_command(buf, "cmd-run:%s", name);
   }
 
-  static std::string update_temp_10(const std::string &name, float temp) {
-    uint16_t value = (uint16_t) (temp * 10.0);
-    char buf[6];
-    snprintf(buf, sizeof(buf), "%" PRIu16, value);
-    return "net-" + name + "-" + std::string(buf);
+  static const char *update_net(char *buf, const char *name, uint16_t value) {
+    return check_length(buf, snprintf(buf, COMMAND_MAX, "net-%s-%u", name, static_cast<unsigned>(value)));
   }
 
-  static std::string update_net(const std::string &name, uint16_t value) {
-    char buf[6];
-    snprintf(buf, sizeof(buf), "%" PRIu16, value);
-    return "net-" + name + "-" + buf;
+  static const char *update_int(char *buf, const char *name, uint16_t value) {
+    return check_length(buf, snprintf(buf, COMMAND_MAX, "cmd-set:%s=%u", name, static_cast<unsigned>(value)));
   }
-  static std::string update_int(const std::string &name, uint16_t value) {
-    char buf[6];
-    snprintf(buf, sizeof(buf), "%" PRIu16, value);
-    return "cmd-set:" + name + "=" + std::string(buf);
+
+  /// Sends the temperature in tenths of a degree
+  static const char *update_temp_10(char *buf, const char *name, float temp) {
+    return update_net(buf, name, static_cast<uint16_t>(temp * 10.0f));
+  }
+
+ protected:
+  static const char *format_command(char *buf, const char *fmt, const char *name) {
+    return check_length(buf, snprintf(buf, COMMAND_MAX, fmt, name));
+  }
+  static const char *check_length(char *buf, int len) {
+    return len > 0 && static_cast<size_t>(len) < COMMAND_MAX ? buf : nullptr;
   }
 };
 
