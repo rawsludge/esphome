@@ -33,10 +33,14 @@ void MainControlUnitHub::dump_config() {
 
 // The panel reports temperatures many times a second; publish only the latest one once per update interval
 void MainControlUnitHub::update() {
-  if (this->temp_in_sensor_ != nullptr && !std::isnan(this->temp_in_))
-    this->temp_in_sensor_->publish_state(this->temp_in_);
-  if (this->temp_out_sensor_ != nullptr && !std::isnan(this->temp_out_))
-    this->temp_out_sensor_->publish_state(this->temp_out_);
+  const float temp_in = this->temp_in_;
+  const float temp_out = this->temp_out_;
+  this->temp_in_ = NAN;
+  this->temp_out_ = NAN;
+  if (!std::isnan(temp_in))
+    PUBLISH_STATE(this->temp_in_sensor_, temp_in);
+  if (!std::isnan(temp_out))
+    PUBLISH_STATE(this->temp_out_sensor_, temp_out);
 }
 
 void MainControlUnitHub::write_state(switch_::Switch *sw, bool state) {
@@ -53,6 +57,8 @@ void MainControlUnitHub::write_state(switch_::Switch *sw, bool state) {
       return;
     this->parent_->send_command(Commands::update_run(cmd, "HS_KEY"));
   } else if (sw == this->floor_heater_switch_) {
+    if (!sw->has_state() || (sw->state != sw->is_inverted()) == state)
+      return;
     this->parent_->send_command(Commands::update_toggle(cmd, "FLOOR_HEATER_ON"));
   }
 }
@@ -74,7 +80,9 @@ bool MainControlUnitHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_WATER_LEVEL: {
-      PUBLISH_STATE(this->water_level_sensor_, float(DeviceDecoders::decode_int(value) * 100) / 4.0f);
+      int level;
+      if (DeviceDecoders::decode_int(value, level))
+        PUBLISH_STATE(this->water_level_sensor_, float(level * 100) / 4.0f);
       break;
     }
     case Key::KEY_LINE_EN: {
@@ -82,7 +90,8 @@ bool MainControlUnitHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_HS_KEY_STATE: {
-      this->hs_key_state_ = DeviceDecoders::decode_int(value);
+      if (!DeviceDecoders::decode_int(value, this->hs_key_state_))
+        break;
       PUBLISH_STATE(this->main_switch_switch_, this->hs_key_state_ > 0);
       PUBLISH_STATE(this->all_lights_switch_, this->hs_key_state_ == 2);
       break;

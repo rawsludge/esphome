@@ -55,7 +55,9 @@ bool FridgeDeviceHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_FRIDGE_MODE: {
-      const int raw = DeviceDecoders::decode_int(value);
+      int raw;
+      if (!DeviceDecoders::decode_int(value, raw))
+        break;
       // 1 is also reported as Performance
       const size_t idx = raw <= 1 ? 0 : static_cast<size_t>(raw - 1);
       if (this->fridge_mode_select_ != nullptr && idx < std::size(MODE_DEVICE_VALUES))
@@ -64,21 +66,27 @@ bool FridgeDeviceHub::decode(const char *key, const char *value) {
     }
     case Key::KEY_FRIDGE_SOURCE: {
       // Device sends int index; text_sensor expects string from source list
-      int source_idx = DeviceDecoders::decode_int(value);
+      int source_idx;
+      if (!DeviceDecoders::decode_int(value, source_idx))
+        break;
       if (source_idx >= 0 && source_idx < 4 && this->fridge_power_source_text_sensor_) {
         this->fridge_power_source_text_sensor_->publish_state(SOURCE_OPTIONS[source_idx]);
       }
       break;
     }
     case Key::KEY_FRIDGE_TEMP: {
-      const int temp = DeviceDecoders::decode_int(value);
+      int temp;
+      if (!DeviceDecoders::decode_int(value, temp))
+        break;
       if (this->fridge_temperature_select_ != nullptr && temp >= 1 && temp <= 5)
         this->fridge_temperature_select_->publish_state(static_cast<size_t>(temp - 1));
       break;
     }
     case Key::KEY_FRIDGE_TYPE: {
       // Device sends int index; text_sensor expects string from type list
-      int type_idx = DeviceDecoders::decode_int(value);
+      int type_idx;
+      if (!DeviceDecoders::decode_int(value, type_idx))
+        break;
       if (type_idx >= 0 && type_idx < 5 && this->fridge_type_text_sensor_) {
         this->fridge_type_text_sensor_->publish_state(TYPE_OPTIONS[type_idx]);
       }

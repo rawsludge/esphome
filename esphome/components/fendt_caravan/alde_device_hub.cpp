@@ -106,7 +106,9 @@ bool AldeDeviceHub::decode(const char *key, const char *value) {
     }
     case Key::KEY_HEATER_EL: {
       // The panel reports and takes 0-3, the index of "Off", "1 kW", "2 kW", "3 kW"
-      const int idx = DeviceDecoders::decode_int(value);
+      int idx;
+      if (!DeviceDecoders::decode_int(value, idx))
+        break;
       if (this->alde_heater_electricity_select_ != nullptr && idx >= 0 &&
           static_cast<size_t>(idx) < this->alde_heater_electricity_select_->size())
         this->alde_heater_electricity_select_->publish_state(static_cast<size_t>(idx));
