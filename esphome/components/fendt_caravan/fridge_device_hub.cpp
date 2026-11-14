@@ -3,7 +3,7 @@
 #ifdef USE_ESP32
 
 namespace esphome::fendt_caravan {
-ESPHOME_LOG_TAG(TAG, "raw.fridge");
+ESPHOME_LOG_TAG(TAG, "fendt_caravan.fridge");
 
 enum class Key : uint8_t {
   KEY_FRIDGE_AVAILABLE,

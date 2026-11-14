@@ -2,7 +2,7 @@
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
-ESPHOME_LOG_TAG(TAG, "FC.lights");
+ESPHOME_LOG_TAG(TAG, "fendt_caravan.lights");
 
 void LightingDeviceHub::dump_config() { ESP_LOGCONFIG(TAG, "-Fendt Lighting Device-"); }
 

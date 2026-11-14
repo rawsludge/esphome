@@ -2,7 +2,7 @@
 
 #ifdef USE_ESP32
 namespace esphome::fendt_caravan {
-ESPHOME_LOG_TAG(TAG, "FC.alde");
+ESPHOME_LOG_TAG(TAG, "fendt_caravan.alde");
 
 enum class Key : uint8_t {
   KEY_HEATER_AVAILABLE,
