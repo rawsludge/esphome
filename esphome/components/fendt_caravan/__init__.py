@@ -22,6 +22,7 @@ MainControlUnitHub = fendt_caravan_ns.class_("MainControlUnitHub", FendtCaravanH
 AldeDeviceHub = fendt_caravan_ns.class_("AldeDeviceHub", FendtCaravanHubBase)
 FridgeDeviceHub = fendt_caravan_ns.class_("FridgeDeviceHub", FendtCaravanHubBase)
 LightingDeviceHub = fendt_caravan_ns.class_("LightingDeviceHub", FendtCaravanHubBase)
+BatteryOneHub = fendt_caravan_ns.class_("BatteryOneHub", FendtCaravanHubBase)
 
 CONF_BT_ID = "bt_id"
 CONF_PARENT_ID = "parent_id"
@@ -30,6 +31,7 @@ CONF_MAIN_CONTROL_UNIT = "main_control_unit"
 CONF_ALDE_UNIT = "alde_unit"
 CONF_FRIDGE_UNIT = "fridge_unit"
 CONF_LIGHTING_UNIT = "lighting_unit"
+CONF_BATTERY_ONE_UNIT = "battery_one_unit"
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
@@ -56,6 +58,11 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_LIGHTING_UNIT): cv.Schema(
                 {
                     cv.GenerateID(): cv.declare_id(LightingDeviceHub),
+                }
+            ).extend(cv.polling_component_schema("60s")),
+            cv.Optional(CONF_BATTERY_ONE_UNIT): cv.Schema(
+                {
+                    cv.GenerateID(): cv.declare_id(BatteryOneHub),
                 }
             ).extend(cv.polling_component_schema("60s")),
         }
@@ -86,3 +93,8 @@ async def to_code(config: ConfigType) -> None:
         await cg.register_parented(hub, var)
         await cg.register_component(hub, config[CONF_LIGHTING_UNIT])
         cg.add(var.set_lighting_unit_hub(hub))
+    if (battery_config := config.get(CONF_BATTERY_ONE_UNIT)) is not None:
+        hub = cg.new_Pvariable(battery_config[CONF_ID])
+        await cg.register_parented(hub, var)
+        await cg.register_component(hub, battery_config)
+        cg.add(var.set_battery_one_hub(hub))

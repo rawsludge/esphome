@@ -19,6 +19,9 @@ fendt_caravan:
   lighting_unit:
     id: fendt_caravan_lighting
     update_interval: 60s
+  battery_one_unit:
+    id: fendt_caravan_battery_one
+    update_interval: 60s
 
 sensor:
   - platform: fendt_caravan
@@ -37,6 +40,36 @@ sensor:
     parent_id: fendt_caravan_mcu
     type: water_level
     name: Water Level
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_current
+    name: Battery Current
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_voltage
+    name: Battery Voltage
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_level
+    name: Battery Level
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_remaining_time
+    name: Battery Remaining Time
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_temperature
+    name: Battery Temperature
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_capacity
+    name: Battery Capacity
 
 switch:
   - platform: fendt_caravan
@@ -108,6 +141,16 @@ binary_sensor:
     type: fridge_status
     name: Fridge Status
 
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_available
+    name: Battery Available
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_recalibrated
+    name: Battery Recalibrated
+
 text_sensor:
   - platform: fendt_caravan
     parent_id: fendt_caravan_mcu
@@ -125,6 +168,11 @@ text_sensor:
     type: fridge_type
     name: Fridge Type
     id: fridge_type
+
+  - platform: fendt_caravan
+    parent_id: fendt_caravan_battery_one
+    type: battery_type
+    name: Battery Type
 
 climate:
   - platform: fendt_caravan

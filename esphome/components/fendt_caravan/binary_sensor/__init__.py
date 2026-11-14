@@ -11,12 +11,15 @@ from .. import (
     CONF_PARENT_ID,
     DOMAIN,
     AldeDeviceHub,
+    BatteryOneHub,
     FridgeDeviceHub,
     MainControlUnitHub,
 )
 
 CONF_POWER_STATUS = "power_status"
 CONF_ALDE_STATUS = "alde_status"
+CONF_BATTERY_AVAILABLE = "battery_available"
+CONF_BATTERY_RECALIBRATED = "battery_recalibrated"
 
 
 def _binary_sensor_schema(
@@ -49,6 +52,14 @@ CONFIG_SCHEMA = cv.typed_schema(
             device_class=DEVICE_CLASS_CONNECTIVITY,
             icon="mdi:fridge-top",
         ),
+        CONF_BATTERY_AVAILABLE: _binary_sensor_schema(
+            BatteryOneHub,
+            device_class=DEVICE_CLASS_CONNECTIVITY,
+            icon="mdi:battery",
+        ),
+        CONF_BATTERY_RECALIBRATED: _binary_sensor_schema(
+            BatteryOneHub, icon="mdi:battery-sync"
+        ),
     }
 )
 
@@ -68,6 +79,8 @@ async def to_code(config: ConfigType) -> None:
         CONF_POWER_STATUS: hub.set_power_status_binary_sensor,
         CONF_ALDE_STATUS: hub.set_alde_status_binary_sensor,
         CONF_FRIDGE_STATUS: hub.set_fridge_status_binary_sensor,
+        CONF_BATTERY_AVAILABLE: hub.set_battery_available_binary_sensor,
+        CONF_BATTERY_RECALIBRATED: hub.set_battery_recalibrated_binary_sensor,
     }[config[CONF_TYPE]]
     var = await binary_sensor.new_binary_sensor(config)
     cg.add(setter(var))

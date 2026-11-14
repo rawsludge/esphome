@@ -26,6 +26,17 @@ TEST(FendtDecodeFloat, StripsCelsiusUnit) {
   EXPECT_TRUE(std::isnan(DeviceDecoders::decode_float("12C")));
 }
 
+TEST(FendtDecodeFloat, StripsBatteryUnits) {
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float(" 12,6 V"), 12.6f);
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float("  0,5 A"), 0.5f);
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float("90%"), 90.0f);
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float("  3,5 h"), 3.5f);
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float("95 Ah"), 95.0f);
+  EXPECT_FLOAT_EQ(DeviceDecoders::decode_float(" 0.0^C"), 0.0f);
+  EXPECT_TRUE(std::isnan(DeviceDecoders::decode_float("%")));
+  EXPECT_TRUE(std::isnan(DeviceDecoders::decode_float("12 VA")));
+}
+
 TEST(FendtDecodeFloat, InvalidIsNan) {
   EXPECT_TRUE(std::isnan(DeviceDecoders::decode_float("")));
   EXPECT_TRUE(std::isnan(DeviceDecoders::decode_float("  ")));

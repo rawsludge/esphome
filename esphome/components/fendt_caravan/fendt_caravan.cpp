@@ -208,6 +208,8 @@ void FendtCaravan::on_data_received_(char *data) {
     if (result)
       return;
   }
+  if (this->battery_one_hub_ != nullptr && this->battery_one_hub_->decode(data, value))
+    return;
 }
 
 }  // namespace esphome::fendt_caravan

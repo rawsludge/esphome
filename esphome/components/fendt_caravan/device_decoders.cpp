@@ -21,20 +21,32 @@ static bool copy_trimmed(const char *value, char *buffer, size_t size) {
   return true;
 }
 
-// Removes a trailing Celsius unit: the panel sends "20,0^C"; '°' may also come as UTF-8 or Latin-1
-static void strip_celsius_unit(char *buffer) {
+// Units the panel appends to a value ("20,0^C", "12,6 V", "90%"); '°' may come as UTF-8 or Latin-1.
+// A longer unit comes before any unit it ends with.
+static constexpr const char *UNITS[] = {"\xC2\xB0"
+                                        "C",
+                                        "\xB0"
+                                        "C",
+                                        "^C",
+                                        "Ah",
+                                        "%",
+                                        "V",
+                                        "A",
+                                        "h"};
+
+// Removes one trailing unit from UNITS and the whitespace before it
+static void strip_unit(char *buffer) {
   size_t len = strlen(buffer);
-  if (len < 2 || buffer[len - 1] != 'C')
+  for (const char *unit : UNITS) {
+    const size_t unit_len = strlen(unit);
+    if (len <= unit_len || memcmp(buffer + len - unit_len, unit, unit_len) != 0)
+      continue;
+    len -= unit_len;
+    while (len > 0 && std::isspace(static_cast<unsigned char>(buffer[len - 1])))
+      len--;
+    buffer[len] = '\0';
     return;
-  len--;
-  if (buffer[len - 1] != '^' && buffer[len - 1] != '\xB0')
-    return;
-  len--;
-  if (len > 0 && buffer[len - 1] == '\xC2')
-    len--;
-  while (len > 0 && std::isspace(static_cast<unsigned char>(buffer[len - 1])))
-    len--;
-  buffer[len] = '\0';
+  }
 }
 
 float DeviceDecoders::decode_float(const char *data) {
@@ -43,7 +55,7 @@ float DeviceDecoders::decode_float(const char *data) {
     ESP_LOGW(TAG, "Value too long for a number: '%s'", data);
     return NAN;
   }
-  strip_celsius_unit(buffer);
+  strip_unit(buffer);
   for (char *p = buffer; *p != '\0'; p++) {
     if (*p == ',')
       *p = '.';

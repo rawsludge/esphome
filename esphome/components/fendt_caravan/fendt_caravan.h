@@ -26,6 +26,7 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
   void set_alde_unit_hub(FendtCaravanHubBase *alde_unit_hub) { this->alde_unit_hub_ = alde_unit_hub; }
   void set_fridge_unit_hub(FendtCaravanHubBase *fridge_unit_hub) { this->fridge_unit_hub_ = fridge_unit_hub; }
   void set_lighting_unit_hub(FendtCaravanHubBase *lighting_unit_hub) { this->lighting_unit_hub_ = lighting_unit_hub; }
+  void set_battery_one_hub(FendtCaravanHubBase *battery_one_hub) { this->battery_one_hub_ = battery_one_hub; }
 
   void dump_config() override;
   /// Queues a NUL-terminated command; nullptr (a command that did not fit its buffer) is ignored
@@ -63,6 +64,7 @@ class FendtCaravan : public Component, public ble_client::BLEClientNode {
   FendtCaravanHubBase *alde_unit_hub_{nullptr};
   FendtCaravanHubBase *fridge_unit_hub_{nullptr};
   FendtCaravanHubBase *lighting_unit_hub_{nullptr};
+  FendtCaravanHubBase *battery_one_hub_{nullptr};
 };
 }  // namespace esphome::fendt_caravan
 #endif

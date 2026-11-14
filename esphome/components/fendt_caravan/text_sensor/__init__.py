@@ -6,12 +6,19 @@ from esphome.const import CONF_TYPE
 from esphome.cpp_generator import MockObjClass
 from esphome.types import ConfigType
 
-from .. import CONF_PARENT_ID, DOMAIN, FridgeDeviceHub, MainControlUnitHub
+from .. import (
+    CONF_PARENT_ID,
+    DOMAIN,
+    BatteryOneHub,
+    FridgeDeviceHub,
+    MainControlUnitHub,
+)
 
 CONF_SOFTWARE_VERSION = "software_version"
 CONF_FRIDGE_POWER_SOURCE = "fridge_power_source"
 CONF_FRIDGE_TYPE = "fridge_type"
 CONF_PANEL_VERSION = "panel_version"
+CONF_BATTERY_TYPE = "battery_type"
 
 
 def _text_schema(
@@ -41,6 +48,7 @@ CONFIG_SCHEMA = cv.typed_schema(
         ),
         CONF_FRIDGE_TYPE: _text_schema(FridgeDeviceHub, icon="mdi:fridge-top"),
         CONF_PANEL_VERSION: _text_schema(MainControlUnitHub, icon="mdi:monitor"),
+        CONF_BATTERY_TYPE: _text_schema(BatteryOneHub, icon="mdi:car-battery"),
     }
 )
 
@@ -61,6 +69,7 @@ async def to_code(config: ConfigType) -> None:
         CONF_PANEL_VERSION: hub.set_panel_version_text_sensor,
         CONF_FRIDGE_POWER_SOURCE: hub.set_fridge_power_source_text_sensor,
         CONF_FRIDGE_TYPE: hub.set_fridge_type_text_sensor,
+        CONF_BATTERY_TYPE: hub.set_battery_type_text_sensor,
     }[config[CONF_TYPE]]
     var = await text_sensor.new_text_sensor(config)
     cg.add(setter(var))
