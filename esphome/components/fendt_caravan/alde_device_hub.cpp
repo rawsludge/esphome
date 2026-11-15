@@ -1,6 +1,10 @@
 #include "alde_device_hub.h"
 
 #ifdef USE_ESP32
+#include <strings.h>
+#include <cctype>
+#include <cmath>
+
 namespace esphome::fendt_caravan {
 ESPHOME_LOG_TAG(TAG, "fendt_caravan.alde");
 
@@ -105,10 +109,16 @@ bool AldeDeviceHub::decode(const char *key, const char *value) {
       break;
     }
     case Key::KEY_HEATER_EL: {
-      // The panel reports and takes 0-3, the index of "Off", "1 kW", "2 kW", "3 kW"
-      int idx;
-      if (!DeviceDecoders::decode_int(value, idx))
-        break;
+      // The panel reports "Off", "1 kW", "2 kW" or "3 kW"; the kW figure is the select index
+      while (std::isspace(static_cast<unsigned char>(*value)))
+        value++;
+      int idx = 0;
+      if (strncasecmp(value, "off", 3) != 0) {
+        const float kw = DeviceDecoders::decode_float(value);
+        if (std::isnan(kw))
+          break;
+        idx = static_cast<int>(kw);
+      }
       if (this->alde_heater_electricity_select_ != nullptr && idx >= 0 &&
           static_cast<size_t>(idx) < this->alde_heater_electricity_select_->size())
         this->alde_heater_electricity_select_->publish_state(static_cast<size_t>(idx));

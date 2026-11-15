@@ -29,6 +29,7 @@ static constexpr const char *UNITS[] = {"\xC2\xB0"
                                         "C",
                                         "^C",
                                         "Ah",
+                                        "kW",
                                         "%",
                                         "V",
                                         "A",

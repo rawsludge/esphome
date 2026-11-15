@@ -133,7 +133,6 @@ void FendtCaravan::send_command(const char *command) {
     ESP_LOGW(TAG, "Command too long, dropped");
     return;
   }
-  ESP_LOGV(TAG, "send_command: %s", command);
   if (this->parent()->state() != espbt::ClientState::ESTABLISHED ||
       this->node_state != espbt::ClientState::ESTABLISHED || this->wait_handshake_) {
     return;
@@ -144,6 +143,7 @@ void FendtCaravan::send_command(const char *command) {
 bool FendtCaravan::add_command_(const char *cmd, size_t len, bool session) {
   if (len == 0)
     return false;
+  ESP_LOGV(TAG, "Command Added command: '%s', length: %zu", cmd, len);
   // All chunks of a command are queued or none: a partial command would leave the panel waiting for the rest
   const size_t needed = (len + CHUNK_SIZE - 1) / CHUNK_SIZE;
   if (needed > QUEUE_SIZE - this->commands_.size()) {

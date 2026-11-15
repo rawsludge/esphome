@@ -18,7 +18,7 @@ class DeviceDecoders {
   }
 
   /// NAN when the value is empty or not a number; accepts ',' as the decimal separator and a trailing unit
-  /// (°C, ^C, Ah, %, V, A, h)
+  /// (°C, ^C, Ah, kW, %, V, A, h)
   static float decode_float(const char *data);
   /// False, leaving `out` unchanged, when the value is empty or not a whole number
   static bool decode_int(const char *value, int &out);
