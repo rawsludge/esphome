@@ -14,9 +14,9 @@ void Logger::pre_setup() {
 #if defined(USE_ESP8266_LOGGER_SERIAL)
   this->hw_serial_ = &Serial;
   Serial.begin(this->baud_rate_);
-  if (this->uart_ == UART_SELECTION_UART0_SWAP) {
-    Serial.swap();
-  }
+#ifdef USE_LOGGER_UART_SELECTION_UART0_SWAP
+  Serial.swap();
+#endif
   Serial.setDebugOutput(ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE);
 #elif defined(USE_ESP8266_LOGGER_SERIAL1)
   this->hw_serial_ = &Serial1;
@@ -35,18 +35,10 @@ void Logger::pre_setup() {
 #endif
 }
 
-const LogString *Logger::get_uart_selection_() {
-#if defined(USE_ESP8266_LOGGER_SERIAL)
-  if (this->uart_ == UART_SELECTION_UART0_SWAP) {
-    return LOG_STR("UART0_SWAP");
-  }
-  return LOG_STR("UART0");
-#elif defined(USE_ESP8266_LOGGER_SERIAL1)
-  return LOG_STR("UART1");
-#else
-  return LOG_STR("NONE");
+#ifdef USE_CRASH_HANDLER
+bool crash_log_pending() { return esp8266::crash_handler_has_data(); }
+void log_crash_to_client() { esp8266::crash_handler_log(); }
 #endif
-}
 
 }  // namespace esphome::logger
 

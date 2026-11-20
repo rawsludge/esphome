@@ -82,7 +82,10 @@ inline void lv_style_set_text_font(lv_style_t *style, const font::Font *font) {
 #ifdef USE_IMAGE
 #ifdef USE_LVGL_IMAGE
 // Shortcut / overload, so that the source of an image widget can easily be updated from within a lambda.
-inline void lv_image_set_src(lv_obj_t *obj, image::Image *image) { ::lv_image_set_src(obj, image->get_lv_image_dsc()); }
+inline void lv_image_set_src(lv_obj_t *obj, image::Image *image) {
+  ::lv_image_set_src(obj, image->get_lv_image_dsc());
+  image->add_lvgl_widget(obj);
+}
 
 inline void lv_obj_set_style_bitmap_mask_src(lv_obj_t *obj, image::Image *image, lv_style_selector_t selector) {
   ::lv_obj_set_style_bitmap_mask_src(obj, image->get_lv_image_dsc(), selector);
@@ -142,6 +145,12 @@ lv_obj_t *lv_list_get_row_for_remove(lv_obj_t *list, int index);
 
 lv_color_t lv_grad_calculate_color(const lv_grad_dsc_t *dsc, int32_t pos);
 #endif  // USE_LVGL_GRADIENT
+
+#ifdef USE_LVGL_MENU
+// True if `e` is a click on `menu`'s back button while already at the root page -- the one
+// case LVGL's own docs say the app must handle itself (there is no default behavior).
+bool lv_menu_back_button_is_root_click(lv_obj_t *menu, lv_event_t *e);
+#endif  // USE_LVGL_MENU
 
 // Parent class for things that wrap an LVGL object
 class LvCompound {
@@ -524,19 +533,19 @@ class LvLineType : public LvCompound {
 // content width changes.
 class LvTableType : public LvCompound {
  public:
+  struct ColumnPct {
+    uint32_t col;
+    uint8_t pct;
+  };
+
   void set_obj(lv_obj_t *lv_obj) override;
-  // count is the number of percentage-width columns, known at code-generation time.
-  void init_column_pct(size_t count) { this->column_pct_.init(count); }
+  void set_column_pct_storage(std::span<ColumnPct> storage) { this->column_pct_.init(storage); }
   void add_column_width_pct(uint32_t col, uint8_t pct);
 
  protected:
   void update_column_widths_();
 
-  struct ColumnPct {
-    uint32_t col;
-    uint8_t pct;
-  };
-  FixedVector<ColumnPct> column_pct_{};
+  StaticFixedVector<ColumnPct> column_pct_;
 };
 #endif  // USE_LVGL_TABLE
 #if defined(USE_LVGL_DROPDOWN) || defined(LV_USE_ROLLER)
