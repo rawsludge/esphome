@@ -1,0 +1,109 @@
+srne_ml24xx:
+  id: srne_ml24xx_controller
+  modbus_id: modbus_bus
+  address: 0x01
+  update_interval: 10s
+
+sensor:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    battery_level:
+      name: Battery Level
+    battery_voltage:
+      name: Battery Voltage
+    battery_charging_current:
+      name: Battery Charging Current
+    controller_temperature:
+      name: Controller Temperature
+    battery_temperature:
+      name: Battery Temperature
+    load_voltage:
+      name: Load Voltage
+    load_current:
+      name: Load Current
+    load_power:
+      name: Load Power
+    load_brightness:
+      name: Load Brightness
+    solar_panel_voltage:
+      name: Solar Panel Voltage
+    solar_panel_current:
+      name: Solar Panel Current
+    solar_panel_power:
+      name: Solar Panel Power
+    daily_battery_voltage_min:
+      name: Daily Battery Voltage Min
+    daily_battery_voltage_max:
+      name: Daily Battery Voltage Max
+    daily_charging_current_max:
+      name: Daily Charging Current Max
+    daily_discharging_current_max:
+      name: Daily Discharging Current Max
+    daily_charging_power_max:
+      name: Daily Charging Power Max
+    daily_discharging_power_max:
+      name: Daily Discharging Power Max
+    daily_charging_amp_hours:
+      name: Daily Charging Amp Hours
+    daily_discharging_amp_hours:
+      name: Daily Discharging Amp Hours
+    daily_power_generation:
+      name: Daily Power Generation
+    daily_power_consumption:
+      name: Daily Power Consumption
+    total_operating_days:
+      name: Total Operating Days
+    total_battery_over_discharges:
+      name: Total Battery Over Discharges
+    total_battery_full_charges:
+      name: Total Battery Full Charges
+    total_charging_amp_hours:
+      name: Total Charging Amp Hours
+    total_discharging_amp_hours:
+      name: Total Discharging Amp Hours
+    total_power_generation:
+      name: Total Power Generation
+    total_power_consumption:
+      name: Total Power Consumption
+
+binary_sensor:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    load_status:
+      name: Load Status
+    charge_mos_short_circuit:
+      name: Charge MOS Short Circuit
+    anti_reverse_mos_short_circuit:
+      name: Anti Reverse MOS Short Circuit
+    solar_panel_reversely_connected:
+      name: Solar Panel Reversely Connected
+    solar_panel_working_point_over_voltage:
+      name: Solar Panel Working Point Over Voltage
+    solar_panel_counter_current:
+      name: Solar Panel Counter Current
+    photovoltaic_input_over_voltage:
+      name: PV Input Over Voltage
+    photovoltaic_input_short_circuit:
+      name: PV Input Short Circuit
+    photovoltaic_input_over_power:
+      name: PV Input Over Power
+    ambient_temperature_too_high:
+      name: Ambient Temperature Too High
+    controller_temperature_too_high:
+      name: Controller Temperature Too High
+    load_over_power:
+      name: Load Over Power
+    load_short_circuit:
+      name: Load Short Circuit
+    battery_under_voltage:
+      name: Battery Under Voltage
+    battery_over_voltage:
+      name: Battery Over Voltage
+    battery_over_discharge:
+      name: Battery Over Discharge
+
+text_sensor:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    charging_state:
+      name: Charging State
