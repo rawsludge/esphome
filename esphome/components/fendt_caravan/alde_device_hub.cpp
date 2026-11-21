@@ -55,7 +55,7 @@ void AldeDeviceHub::write_state(switch_::Switch *sw, bool state) {
   } else if (sw == this->alde_water_heater_boost_switch_) {
     this->parent_->send_command(Commands::update_toggle(cmd, "HEATER_WATER_TEMP"));
   } else if (sw == this->alde_heater_gas_switch_) {
-    this->parent_->send_command(Commands::update_run(cmd, "HEATER_GAS"));
+    this->parent_->send_command(Commands::update_toggle(cmd, "HEATER_GAS"));
   }
 }
 
