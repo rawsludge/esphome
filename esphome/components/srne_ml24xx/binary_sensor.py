@@ -13,6 +13,7 @@ from esphome.types import ConfigType
 from . import (
     CONF_SRNE_ML24XX_ID,
     REG_FAULTS_HIGH,
+    REG_FAULTS_LOW,
     REG_LOAD_AND_CHARGING_STATE,
     SRNE_ML24XX_CHILD_SCHEMA,
     register_binary_sensor,
@@ -25,31 +26,38 @@ SrneMl24xxBinarySensor = srne_ml24xx_ns.class_(
     "SrneMl24xxBinarySensor", binary_sensor.BinarySensor
 )
 
-# Fault bits B16 to B30 of the 32-bit value in 0x0121/0x0122 are bits 0 to 14 of 0x0121
+# Fault and warning bits B16 to B31 are bits 0 to 15 of 0x0121, B0 to B15 bits 0 to 15 of 0x0122
 _FAULTS = (
-    ("charge_mos_short_circuit", 14),
-    ("anti_reverse_mos_short_circuit", 13),
-    ("solar_panel_reversely_connected", 12),
-    ("solar_panel_working_point_over_voltage", 11),
-    ("solar_panel_counter_current", 10),
-    ("photovoltaic_input_over_voltage", 9),
-    ("photovoltaic_input_short_circuit", 8),
-    ("photovoltaic_input_over_power", 7),
-    ("ambient_temperature_too_high", 6),
-    ("controller_temperature_too_high", 5),
-    ("load_over_power", 4),
-    ("load_short_circuit", 3),
-    ("battery_under_voltage", 2),
-    ("battery_over_voltage", 1),
-    ("battery_over_discharge", 0),
+    ("load_open_circuit", REG_FAULTS_HIGH, 15),
+    ("induction_probe_damaged", REG_FAULTS_HIGH, 14),
+    ("capacitor_over_voltage", REG_FAULTS_HIGH, 13),
+    ("battery_reversely_connected", REG_FAULTS_HIGH, 12),
+    ("battery_low_temperature_charging_stopped", REG_FAULTS_HIGH, 11),
+    ("overcharge_protection", REG_FAULTS_HIGH, 10),
+    ("battery_low_temperature_discharging_prohibited", REG_FAULTS_HIGH, 9),
+    ("battery_high_temperature_discharging_prohibited", REG_FAULTS_HIGH, 8),
+    ("no_battery_detected", REG_FAULTS_HIGH, 7),
+    ("solar_panel_reversely_connected", REG_FAULTS_LOW, 12),
+    ("solar_panel_working_point_over_voltage", REG_FAULTS_LOW, 11),
+    ("photovoltaic_input_over_voltage", REG_FAULTS_LOW, 9),
+    ("photovoltaic_input_over_power", REG_FAULTS_LOW, 7),
+    ("battery_high_temperature_charging_prohibited", REG_FAULTS_LOW, 6),
+    ("controller_temperature_too_high", REG_FAULTS_LOW, 5),
+    ("load_over_power", REG_FAULTS_LOW, 4),
+    ("load_short_circuit", REG_FAULTS_LOW, 3),
+    ("battery_under_voltage", REG_FAULTS_LOW, 2),
+    ("battery_over_voltage", REG_FAULTS_LOW, 1),
+    ("battery_over_discharge", REG_FAULTS_LOW, 0),
 )
 
 # (key, register offset, bit, device class, entity category)
 _FIELDS = (
     ("load_status", REG_LOAD_AND_CHARGING_STATE, 15, DEVICE_CLASS_POWER, cv.UNDEFINED),
+    # B22: 0 battery powered, 1 mains powered
+    ("mains_power_supply", REG_FAULTS_HIGH, 6, DEVICE_CLASS_POWER, cv.UNDEFINED),
     *(
-        (key, REG_FAULTS_HIGH, bit, DEVICE_CLASS_PROBLEM, ENTITY_CATEGORY_DIAGNOSTIC)
-        for key, bit in _FAULTS
+        (key, reg, bit, DEVICE_CLASS_PROBLEM, ENTITY_CATEGORY_DIAGNOSTIC)
+        for key, reg, bit in _FAULTS
     ),
 )
 

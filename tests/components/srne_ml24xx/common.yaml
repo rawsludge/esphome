@@ -65,30 +65,75 @@ sensor:
       name: Total Power Generation
     total_power_consumption:
       name: Total Power Consumption
+    max_system_voltage:
+      name: Max System Voltage
+    rated_charging_current:
+      name: Rated Charging Current
+    rated_discharging_current:
+      name: Rated Discharging Current
+    recognized_system_voltage:
+      name: Recognized System Voltage
+    history:
+      - day: 1
+        battery_voltage_min:
+          name: Yesterday Battery Voltage Min
+        battery_voltage_max:
+          name: Yesterday Battery Voltage Max
+        charging_current_max:
+          name: Yesterday Charging Current Max
+        discharging_current_max:
+          name: Yesterday Discharging Current Max
+        charging_power_max:
+          name: Yesterday Charging Power Max
+        discharging_power_max:
+          name: Yesterday Discharging Power Max
+        charging_amp_hours:
+          name: Yesterday Charging Amp Hours
+        discharging_amp_hours:
+          name: Yesterday Discharging Amp Hours
+        power_generation:
+          name: Yesterday Power Generation
+        power_consumption:
+          name: Yesterday Power Consumption
+      - day: 7
+        power_generation:
+          name: Week Ago Power Generation
 
 binary_sensor:
   - platform: srne_ml24xx
     srne_ml24xx_id: srne_ml24xx_controller
     load_status:
       name: Load Status
-    charge_mos_short_circuit:
-      name: Charge MOS Short Circuit
-    anti_reverse_mos_short_circuit:
-      name: Anti Reverse MOS Short Circuit
+    load_open_circuit:
+      name: Load Open Circuit
+    induction_probe_damaged:
+      name: Induction Probe Damaged
+    capacitor_over_voltage:
+      name: Capacitor Over Voltage
+    battery_reversely_connected:
+      name: Battery Reversely Connected
+    battery_low_temperature_charging_stopped:
+      name: Battery Low Temperature Charging Stopped
+    overcharge_protection:
+      name: Overcharge Protection
+    battery_low_temperature_discharging_prohibited:
+      name: Battery Low Temperature Discharging Prohibited
+    battery_high_temperature_discharging_prohibited:
+      name: Battery High Temperature Discharging Prohibited
+    no_battery_detected:
+      name: No Battery Detected
+    mains_power_supply:
+      name: Mains Power Supply
     solar_panel_reversely_connected:
       name: Solar Panel Reversely Connected
     solar_panel_working_point_over_voltage:
       name: Solar Panel Working Point Over Voltage
-    solar_panel_counter_current:
-      name: Solar Panel Counter Current
     photovoltaic_input_over_voltage:
-      name: PV Input Over Voltage
-    photovoltaic_input_short_circuit:
-      name: PV Input Short Circuit
+      name: Photovoltaic Input Over Voltage
     photovoltaic_input_over_power:
-      name: PV Input Over Power
-    ambient_temperature_too_high:
-      name: Ambient Temperature Too High
+      name: Photovoltaic Input Over Power
+    battery_high_temperature_charging_prohibited:
+      name: Battery High Temperature Charging Prohibited
     controller_temperature_too_high:
       name: Controller Temperature Too High
     load_over_power:
@@ -107,3 +152,87 @@ text_sensor:
     srne_ml24xx_id: srne_ml24xx_controller
     charging_state:
       name: Charging State
+    product_model:
+      name: Product Model
+    product_type:
+      name: Product Type
+    software_version:
+      name: Software Version
+    hardware_version:
+      name: Hardware Version
+    serial_number:
+      name: Serial Number
+
+button:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    factory_reset:
+      name: Factory Reset
+    clear_history:
+      name: Clear History
+
+switch:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    load:
+      name: Load
+    each_night_on:
+      name: Each Night On
+    special_power_control:
+      name: Special Power Control
+    no_charging_below_zero:
+      name: No Charging Below Zero
+
+select:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    battery_type:
+      name: Battery Type
+    system_voltage:
+      name: System Voltage
+    load_working_mode:
+      name: Load Working Mode
+    charging_method:
+      name: Charging Method
+
+number:
+  - platform: srne_ml24xx
+    srne_ml24xx_id: srne_ml24xx_controller
+    charging_current_limit:
+      name: Charging Current Limit
+    nominal_battery_capacity:
+      name: Nominal Battery Capacity
+    over_voltage_threshold:
+      name: Over Voltage Threshold
+    charging_limit_voltage:
+      name: Charging Limit Voltage
+    equalizing_charging_voltage:
+      name: Equalizing Charging Voltage
+    boost_charging_voltage:
+      name: Boost Charging Voltage
+    floating_charging_voltage:
+      name: Floating Charging Voltage
+    boost_charging_recovery_voltage:
+      name: Boost Charging Recovery Voltage
+    over_discharge_recovery_voltage:
+      name: Over Discharge Recovery Voltage
+    under_voltage_warning_level:
+      name: Under Voltage Warning Level
+    over_discharge_voltage:
+      name: Over Discharge Voltage
+    discharging_limit_voltage:
+      name: Discharging Limit Voltage
+    over_discharge_time_delay:
+      name: Over Discharge Time Delay
+    equalizing_charging_time:
+      name: Equalizing Charging Time
+    boost_charging_time:
+      name: Boost Charging Time
+    equalizing_charging_interval:
+      name: Equalizing Charging Interval
+    temperature_compensation_factor:
+      name: Temperature Compensation Factor
+    light_control_delay:
+      name: Light Control Delay
+    light_control_voltage:
+      name: Light Control Voltage

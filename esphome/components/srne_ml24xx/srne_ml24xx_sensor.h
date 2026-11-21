@@ -8,16 +8,20 @@
 
 namespace esphome::srne_ml24xx {
 
+/// A value at an offset inside the register block that starts at `block`
 class SrneMl24xxSensor final : public sensor::Sensor {
  public:
-  SrneMl24xxSensor(uint8_t reg, RegisterFormat format, float scale) : reg_(reg), format_(format), scale_(scale) {}
+  SrneMl24xxSensor(uint16_t block, uint8_t reg, RegisterFormat format, float scale)
+      : scale_(scale), block_(block), reg_(reg), format_(format) {}
 
+  uint16_t get_block() const { return this->block_; }
   void on_registers(std::span<const uint16_t> registers);
 
  protected:
+  const float scale_;
+  const uint16_t block_;
   const uint8_t reg_;
   const RegisterFormat format_;
-  const float scale_;
 };
 
 }  // namespace esphome::srne_ml24xx
