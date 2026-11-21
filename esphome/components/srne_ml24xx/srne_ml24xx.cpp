@@ -12,11 +12,35 @@ PROGMEM_STRING_TABLE(ChargingStateStrings, "Deactivated", "Activated", "MPPT", "
                      "Current limiting", "Unknown");
 #endif
 
+#ifdef USE_SENSOR
+void SrneMl24xxSensor::on_registers(std::span<const uint16_t> registers) {
+  const float value = decode_register(registers, this->reg_, this->format_);
+  if (std::isnan(value))
+    return;
+  const float state = value * this->scale_;
+  ESP_LOGD(TAG, "'%s' published %f", LOG_STR_ARG(this->get_log_name()), state);
+  this->publish_state(state);
+}
+#endif
+
+#ifdef USE_BINARY_SENSOR
+void SrneMl24xxBinarySensor::on_registers(std::span<const uint16_t> registers) {
+  if (this->reg_ >= registers.size())
+    return;
+  const bool state = ((registers[this->reg_] >> this->bit_) & 1) != 0;
+  ESP_LOGD(TAG, "'%s' published %s", LOG_STR_ARG(this->get_log_name()), ONOFF(state));
+  this->publish_state(state);
+}
+#endif
+
 void SrneMl24xx::update() {
   if (!this->read_holding_registers(RAM_START_ADDRESS, RAM_REGISTER_COUNT)) {
     ESP_LOGW(TAG, "Could not queue the read request");
     this->status_set_warning();
+    return;
   }
+  ESP_LOGD(TAG, "Requested %u registers from 0x%04X", static_cast<unsigned>(RAM_REGISTER_COUNT),
+           static_cast<unsigned>(RAM_START_ADDRESS));
 }
 
 void SrneMl24xx::on_read_holding_registers(uint16_t start_address, std::span<const uint16_t> registers,
@@ -33,6 +57,8 @@ void SrneMl24xx::on_read_holding_registers(uint16_t start_address, std::span<con
     return;
   }
   this->status_clear_warning();
+  ESP_LOGD(TAG, "Received %u registers from 0x%04X", static_cast<unsigned>(registers.size()),
+           static_cast<unsigned>(start_address));
 
 #ifdef SRNE_ML24XX_SENSOR_COUNT
   for (auto *sensor : this->sensors_)
@@ -51,6 +77,7 @@ void SrneMl24xx::on_read_holding_registers(uint16_t start_address, std::span<con
         reinterpret_cast<const char *>(ChargingStateStrings::get_progmem_str(state, ChargingStateStrings::LAST_INDEX)),
         sizeof(name));
     name[sizeof(name) - 1] = '\0';
+    ESP_LOGD(TAG, "Charging state: %s", name);
     this->charging_state_text_sensor_->publish_state(name);
   }
 #endif

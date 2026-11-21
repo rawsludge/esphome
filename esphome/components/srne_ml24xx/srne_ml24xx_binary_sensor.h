@@ -15,10 +15,7 @@ class SrneMl24xxBinarySensor final : public binary_sensor::BinarySensor {
  public:
   SrneMl24xxBinarySensor(uint8_t reg, uint8_t bit) : reg_(reg), bit_(bit) {}
 
-  void on_registers(std::span<const uint16_t> registers) {
-    if (this->reg_ < registers.size())
-      this->publish_state(((registers[this->reg_] >> this->bit_) & 1) != 0);
-  }
+  void on_registers(std::span<const uint16_t> registers);
 
  protected:
   const uint8_t reg_;

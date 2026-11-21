@@ -12,11 +12,7 @@ class SrneMl24xxSensor final : public sensor::Sensor {
  public:
   SrneMl24xxSensor(uint8_t reg, RegisterFormat format, float scale) : reg_(reg), format_(format), scale_(scale) {}
 
-  void on_registers(std::span<const uint16_t> registers) {
-    const float value = decode_register(registers, this->reg_, this->format_);
-    if (!std::isnan(value))
-      this->publish_state(value * this->scale_);
-  }
+  void on_registers(std::span<const uint16_t> registers);
 
  protected:
   const uint8_t reg_;
