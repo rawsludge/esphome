@@ -23,7 +23,7 @@ template<typename Table> static void publish_table_entry(text_sensor::TextSensor
   ESPHOME_strncpy_P(name, reinterpret_cast<const char *>(Table::get_progmem_str(index, Table::LAST_INDEX)),
                     sizeof(name));
   name[sizeof(name) - 1] = '\0';
-  ESP_LOGD(TAG, "'%s' published %s", LOG_STR_ARG(sensor->get_log_name()), name);
+  ESP_LOGV(TAG, "'%s' published %s", LOG_STR_ARG(sensor->get_log_name()), name);
   sensor->publish_state(name);
 }
 
@@ -42,7 +42,7 @@ void SrneMl24xxSensor::on_registers(std::span<const uint16_t> registers) {
   if (std::isnan(value))
     return;
   const float state = value * this->scale_;
-  ESP_LOGD(TAG, "'%s' published %f", LOG_STR_ARG(this->get_log_name()), state);
+  ESP_LOGV(TAG, "'%s' published %f", LOG_STR_ARG(this->get_log_name()), state);
   this->publish_state(state);
 }
 #endif
